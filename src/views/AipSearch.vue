@@ -104,6 +104,7 @@ import {
 } from "@element-plus/icons-vue";
 import PTApi from "@/api/platform";
 import { useAipStore } from "@/store";
+import { ElMessage } from "element-plus";
 
 const select_data = reactive([
   { key: "AIP", val: "AIP" },

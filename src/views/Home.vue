@@ -74,6 +74,7 @@
 <script setup lang="ts">
 import { useRouter } from "vue-router";
 import { DataAnalysis, VideoCamera, Document, ArrowRight } from "@element-plus/icons-vue";
+import { ElMessage } from 'element-plus';
 
 const router = useRouter();
 const navigateTo = (path: string) => {
