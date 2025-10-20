@@ -18,7 +18,7 @@ const routes: RouteRecordRaw[] = [
       {
         path: "login",
         name: "ptLogin",
-        component: () => import("@/views/PtLogin.vue"),
+        component: () => import("@/views/PTLogin.vue"),
         meta: {
           title: "AIP/GC",
           icon: "el-icon-smoking",
