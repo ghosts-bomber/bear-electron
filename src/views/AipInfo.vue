@@ -102,15 +102,15 @@
 </template>
 
 <script setup lang="ts">
-import LogViewer from "@/components/LogViewer/index.vue";
-import type { AxiosResponse } from "axios";
 import PTApi from "@/api/platform";
+import LogViewer from "@/components/LogViewer/index.vue";
 import { useAipStore } from "@/store";
+import { Document, DocumentCopy } from "@element-plus/icons-vue";
+import type { AxiosResponse } from "axios";
+import { ElMessage, ElMessageBox } from "element-plus";
 import pako from "pako";
 import Tar from "parse-tar";
-import { Document, DocumentCopy } from "@element-plus/icons-vue";
-import { onMounted, watch } from "vue";
-
+import { computed, onBeforeUnmount, onMounted, reactive, ref, watch } from "vue";
 interface AipInfo {
   carCyberRtVersion?: string;
   carId?: string;
@@ -311,10 +311,11 @@ const logDbClickedHandle = async (row: any, column: any, event: Event) => {
       })
       .catch()
       .finally();
-
+    
     const url_match = url.match(/https?:\/\/[^/]+(\/.+)/);
     if (url_match !== null) {
-      await PTApi.downloadFile(url_match[1]).then(async (response: AxiosResponse) => {
+      console.log("url_match:", url_match);
+      await PTApi.downloadFile(url_match[0]).then(async (response: AxiosResponse) => {
         try {
           if (!logFile.cut) {
             // 解压 gzip 数据

@@ -1,7 +1,6 @@
 import axios, { type AxiosResponse } from "axios";
 import qs from "qs";
 const service = axios.create({
-  baseURL: "neodown",
   timeout: 50000,
 
   paramsSerializer: (params) => {

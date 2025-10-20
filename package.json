@@ -3,12 +3,19 @@
   "private": true,
   "version": "0.0.0",
   "main": "dist-electron/index.js",
+  "homepage": "./",
   "scripts": {
     "dev": "vite",
-    "electron:dev": "concurrently \"cnpm run dev\" \"wait-on http://localhost:5173 && electron .\"",
-    "electron:build": "npm run build && electron .",
-    "build": "vue-tsc && rimraf dist-electron && vite build && electron-builder",
-    "preview": "vite preview"
+    "build": "vue-tsc --noEmit && vite build",
+    "preview": "vite preview",
+    "electron:dev": "concurrently \"npm run dev\" \"wait-on http://127.0.0.1:7900 && electron .\"",
+    "electron:build": "npm run build && electron-builder",
+    "electron:serve": "electron .",
+    "build:electron": "npm run build && electron-builder --publish=never",
+    "dist": "npm run build && electron-builder --publish=always",
+    "postinstall": "electron-builder install-app-deps",
+    "lint": "vue-tsc --noEmit",
+    "clean": "rimraf dist dist-electron"
   },
   "dependencies": {
     "@element-plus/icons-vue": "^2.3.2",
@@ -23,6 +30,7 @@
   },
   "devDependencies": {
     "@types/node": "^24.6.0",
+    "@types/qs": "^6.9.17",
     "@vitejs/plugin-vue": "^6.0.1",
     "@vue/tsconfig": "^0.8.1",
     "concurrently": "^9.2.1",
@@ -30,6 +38,7 @@
     "electron-builder": "^26.0.12",
     "electron-devtools-installer": "^4.0.0",
     "rimraf": "^6.0.1",
+    "sass": "^1.93.2",
     "sass-embedded": "^1.93.2",
     "typescript": "~5.9.3",
     "vite": "^7.1.7",
@@ -37,5 +46,37 @@
     "vite-plugin-electron-renderer": "^0.14.6",
     "vue-tsc": "^3.1.0",
     "wait-on": "^9.0.1"
-  }
+  },
+  "build": {
+    "appId": "com.example.bear-electron",
+    "productName": "Bear Electron",
+    "directories": {
+      "output": "dist-electron"
+    },
+    "files": [
+      "dist/**/*",
+      "dist-electron/**/*",
+      "node_modules/**/*"
+    ],
+    "mac": {
+      "category": "public.app-category.productivity"
+    },
+    "win": {
+      "target": "nsis"
+    },
+    "linux": {
+      "target": "AppImage"
+    }
+  },
+  "engines": {
+    "node": ">=18.0.0",
+    "npm": ">=8.0.0"
+  },
+  "keywords": [
+    "electron",
+    "vue3",
+    "vite",
+    "typescript",
+    "desktop-app"
+  ]
 }

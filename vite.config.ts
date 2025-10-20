@@ -8,6 +8,10 @@ import polyfillExports from "vite-plugin-electron-renderer"
  
 export default defineConfig(({ mode }) => ({
   base: mode == 'development' ? '' : './',
+  server: {
+    port: 7900,
+    host: '127.0.0.1'
+  },
   plugins: [
     vue(),
     electron([{

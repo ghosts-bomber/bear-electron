@@ -8,7 +8,7 @@ import Navigation from './components/Navigation.vue'
     <router-view />
   </div>
 </template>
-
+console.log(window)
 <style scoped>
 #app {
   font-family: Avenir, Helvetica, Arial, sans-serif;
