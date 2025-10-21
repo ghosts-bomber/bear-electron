@@ -23,7 +23,9 @@
   "dependencies": {
     "@element-plus/icons-vue": "^2.3.2",
     "axios": "^1.12.2",
+    "echarts": "^6.0.0",
     "element-plus": "^2.11.5",
+    "monaco-editor": "^0.54.0",
     "pako": "^2.1.0",
     "parse-tar": "^1.2.2",
     "pinia": "^3.0.3",

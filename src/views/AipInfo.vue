@@ -132,7 +132,7 @@ interface AipInfo {
   type?: string;
 }
 
-interface LogFile {
+interface LogFileInfo {
   cut: boolean;
   filesize: number;
   name: string;
@@ -142,7 +142,7 @@ interface LogFile {
 
 interface AipDataInfo {
   dvLinks: string[];
-  logFiles: LogFile[];
+  logFiles: LogFileInfo[];
   ossName?: string;
   record3dayLinks: string[];
 }
@@ -152,7 +152,7 @@ interface LogTab {
   name: string;
   fullName: string;
   content: string;
-  logFile: LogFile;
+  logFile: LogFileInfo;
 }
 
 const props = defineProps({
@@ -218,7 +218,7 @@ const truncateFileName = (name: string, maxLength: number = 25): string => {
 };
 
 // 生成唯一的Tab ID
-const generateTabId = (logFile: LogFile): string => {
+const generateTabId = (logFile: LogFileInfo): string => {
   return `tab-${logFile.objName}-${Date.now()}`;
 };
 
@@ -243,7 +243,7 @@ const removeTab = (targetName: string | number) => {
 };
 
 // 添加新Tab
-const addTab = (logFile: LogFile, content: string) => {
+const addTab = (logFile: LogFileInfo, content: string) => {
   // 检查是否已经打开了这个文件
   const existingTab = openTabs.value.find((tab) => tab.logFile.objName === logFile.objName);
 
@@ -289,7 +289,7 @@ const showTabContextMenu = (event: MouseEvent, tab: LogTab) => {
 };
 
 const logDbClickedHandle = async (row: any, column: any, event: Event) => {
-  let logFile = row as LogFile;
+  let logFile = row as LogFileInfo;
   let url: string = "";
 
   // 显示加载状态
@@ -314,17 +314,17 @@ const logDbClickedHandle = async (row: any, column: any, event: Event) => {
       console.log("url_match:", url_match);
         try {
           //if (!logFile.cut) {
-              const { success, content, message } = await (window as any).electronAPI.openJiraFile(
-                aipInfo.jiraIssueKey,
-                logFile.name,
-                url_match[0]
-              );
-              if (!success) {
-                throw new Error(message);
-              }
-              console.log("content:", content, message);
-              // 添加到Tab中
-              addTab(logFile, content);
+          const { success, content, message } = await (window as any).electronAPI.openJiraFile(
+            aipInfo.jiraIssueKey,
+            logFile.name,
+            url_match[0]
+          );
+          if (!success) {
+            throw new Error(message);
+          }
+          console.log("content:", content, message);
+          // 添加到Tab中
+          addTab(logFile, content);
           // 关闭加载提示，显示成功消息
           loadingMessage.close();
           ElMessage.success(`${logFile.name} 加载完成`);
@@ -506,7 +506,7 @@ const isTimeInRange = (fileName: string): boolean => {
 };
 
 // 获取行的CSS类名
-const getRowClassName = ({ row }: { row: LogFile }): string => {
+const getRowClassName = ({ row }: { row: LogFileInfo }): string => {
   return isTimeInRange(row.name) ? "highlight-row" : "";
 };
 

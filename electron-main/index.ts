@@ -15,7 +15,6 @@ const createWindow = () => {
     },
    
   })
- 
   // 如果打包了，渲染index.html
   if (process.env.NODE_ENV !== 'development') {
     win.loadFile(path.join(__dirname, "../index.html"))

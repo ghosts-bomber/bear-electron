@@ -74,7 +74,6 @@
 <script setup lang="ts">
 import { useRouter } from "vue-router";
 import { DataAnalysis, VideoCamera, Document, ArrowRight } from "@element-plus/icons-vue";
-import { ElMessage } from 'element-plus';
 
 const router = useRouter();
 const navigateTo = (path: string) => {
@@ -85,9 +84,7 @@ const navigateTo = (path: string) => {
 <style scoped lang="scss">
 .home-container {
   display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 100vw;
+  width: 100%;
   min-height: 100vh;
   background: #fff;
 }
@@ -97,13 +94,11 @@ const navigateTo = (path: string) => {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  width: 100%;
+  flex: 1;
   max-width: 1400px;
-  min-height: 70vh;
+  min-height: 100vh;
   padding: 40px 20px;
   background: #fff;
-  border-radius: 24px;
-  box-shadow: 0 4px 32px rgb(0 0 0 / 4%);
 }
 
 .section-header {

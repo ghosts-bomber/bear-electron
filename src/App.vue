@@ -4,7 +4,7 @@ import Navigation from './components/Navigation.vue'
 
 <template>
   <div id="app">
-    <!-- <Navigation /> -->
+    <Navigation />
     <router-view />
   </div>
 </template>
@@ -16,5 +16,15 @@ console.log(window)
   -moz-osx-font-smoothing: grayscale;
   color: #2c3e50;
   min-height: 100vh;
+  display: flex;
+}
+
+#app > * {
+  flex-shrink: 0;
+}
+
+router-view {
+  flex: 1;
+  overflow-y: auto;
 }
 </style>

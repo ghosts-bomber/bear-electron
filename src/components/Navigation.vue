@@ -1,107 +1,45 @@
 <template>
   <div class="navigation">
     <el-menu
-      :default-active="activeIndex"
-      mode="horizontal"
-      @select="handleSelect"
-      background-color="#545c64"
-      text-color="#fff"
-      active-text-color="#ffd04b"
-      class="nav-menu"
+    default-active="/aipgc/login"
+    class="sidebar-menu"
+    router="true"
     >
-      <div class="nav-brand">
-        <el-icon><Platform /></el-icon>
-        <span>Bear Electron</span>
-      </div>
-      
-      <div class="nav-items">
-        <el-menu-item index="/">
-          <el-icon><House /></el-icon>
-          <span>首页</span>
-        </el-menu-item>
-        
-        <el-menu-item index="/element-demo">
-          <el-icon><Grid /></el-icon>
-          <span>组件示例</span>
-        </el-menu-item>
-        
-        <el-menu-item index="/about">
-          <el-icon><InfoFilled /></el-icon>
-          <span>关于</span>
-        </el-menu-item>
-      </div>
-
-      <div class="nav-actions">
-        <el-button type="text" @click="toggleTheme">
-          <el-icon><Moon v-if="isDark" /><Sunny v-else /></el-icon>
-        </el-button>
-        
-        <el-dropdown @command="handleCommand">
-          <el-button type="text">
-            <el-icon><Setting /></el-icon>
-          </el-button>
-          <template #dropdown>
-            <el-dropdown-menu>
-              <el-dropdown-item command="settings">设置</el-dropdown-item>
-              <el-dropdown-item command="help">帮助</el-dropdown-item>
-              <el-dropdown-item divided command="about">关于应用</el-dropdown-item>
-            </el-dropdown-menu>
-          </template>
-        </el-dropdown>
-      </div>
+    <el-menu-item index="/aipgc/login" >
+      <el-icon><DataAnalysis /></el-icon>
+      <template #title>Jira分析</template>
+    </el-menu-item>
+    <el-menu-item index="/about">
+      <el-icon> <Document /></el-icon>
+      <template #title>日志分析</template>
+    </el-menu-item>
+    <el-menu-item index="/element-demo">
+      <el-icon><VideoCamera /></el-icon>
+      <template #title>Record分析</template>
+    </el-menu-item>
     </el-menu>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, computed, watch } from 'vue'
+import { ref, computed, watch, onMounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
-import { ElMessage } from 'element-plus'
-import { 
-  Platform, 
-  House, 
-  Grid, 
-  InfoFilled, 
-  Moon, 
-  Sunny, 
-  Setting 
-} from '@element-plus/icons-vue'
 
 const router = useRouter()
 const route = useRoute()
 
-// 当前激活的菜单项
-const activeIndex = computed(() => route.path)
+// 定义菜单项路由列表
+const menuRoutes = ['/aipgc', '/log', '/recorder']
 
-// 主题切换
-const isDark = ref(false)
-
-// 菜单选择处理
-const handleSelect = (key: string) => {
-  router.push(key)
-}
-
-// 主题切换
-const toggleTheme = () => {
-  isDark.value = !isDark.value
-  ElMessage.info(isDark.value ? '已切换到深色主题' : '已切换到浅色主题')
-  // 这里可以实现实际的主题切换逻辑
-}
-
-// 下拉菜单命令处理
-const handleCommand = (command: string) => {
-  switch (command) {
-    case 'settings':
-      ElMessage.info('设置功能待实现')
-      break
-    case 'help':
-      ElMessage.info('帮助功能待实现')
-      break
-    case 'about':
-      router.push('/about')
-      break
+// 组件挂载时处理默认路由
+onMounted(() => {
+  // 只有在当前路由是根路径时才跳转到第一个菜单项
+  if (route.path === '/' || route.path === '') {
+    // 使用 el-menu 的 default-active 属性，它会自动处理路由跳转
+    // 这里不需要手动跳转，因为 el-menu 的 default-active="/aipgc" 已经设置了
+    console.log('默认路由已设置到第一个菜单项')
   }
-}
+})
 
 // 监听路由变化
 watch(route, (newRoute) => {
@@ -111,12 +49,30 @@ watch(route, (newRoute) => {
 
 <style scoped>
 .navigation {
-  position: sticky;
-  top: 0;
-  z-index: 1000;
+  height: 100vh;
+  position: relative;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
+.sidebar-menu {
+  width: 200px;
+  height: 100vh;
+  background: #f5f7fa;
+  border-right: 1px solid #e2e8f0;
+  position: relative;
+}
 
+.sidebar-menu .el-menu-item {
+  height: 60px;
+  line-height: 60px;
+  font-size: 14px;
+  justify-content: flex-start;
+  width: 100%;
+}
+
+.sidebar-menu .el-icon {
+  margin-right: 10px;
+  font-size: 16px;
+}
 .nav-menu {
   display: flex;
   align-items: center;
