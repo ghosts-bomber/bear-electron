@@ -6,4 +6,5 @@ console.log("preload script loaded");
 contextBridge.exposeInMainWorld("electronAPI", {
   readFile: (filePath: string) => ipcRenderer.invoke("read-file", filePath),
   selectFile: () => ipcRenderer.invoke("select-file"),
+  openJiraFile: (jira_id: string, file_name: string, file_url: string) => ipcRenderer.invoke("open-jira-file", jira_id, file_name, file_url),
 });

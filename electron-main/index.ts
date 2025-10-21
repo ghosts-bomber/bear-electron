@@ -3,6 +3,7 @@ import { app, BrowserWindow, ipcMain, dialog } from "electron"
 import path from "path"
 import { registerIpcHandlers } from "./ipc-handlers"
 
+
 const createWindow = () => {
   const win = new BrowserWindow({
     width: 1600,
@@ -39,3 +40,5 @@ app.on("window-all-closed", () => {
     app.quit()
   }
 })
+
+registerIpcHandlers();

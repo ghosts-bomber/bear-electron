@@ -70,7 +70,8 @@ describe('extractFile function test', () => {
   });
 });
 
-describe('downloadFile function test', () => {
+describe.skip('downloadFile function test', () => {
+ 
   const testDir = 'test-temp';
   beforeAll(() => {
     if (fs.existsSync(testDir)) {

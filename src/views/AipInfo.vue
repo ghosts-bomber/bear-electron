@@ -108,8 +108,6 @@ import { useAipStore } from "@/store";
 import { Document, DocumentCopy } from "@element-plus/icons-vue";
 import type { AxiosResponse } from "axios";
 import { ElMessage, ElMessageBox } from "element-plus";
-import pako from "pako";
-import Tar from "parse-tar";
 import { computed, onBeforeUnmount, onMounted, reactive, ref, watch } from "vue";
 interface AipInfo {
   carCyberRtVersion?: string;
@@ -311,47 +309,22 @@ const logDbClickedHandle = async (row: any, column: any, event: Event) => {
       })
       .catch()
       .finally();
-    
     const url_match = url.match(/https?:\/\/[^/]+(\/.+)/);
     if (url_match !== null) {
       console.log("url_match:", url_match);
-      await PTApi.downloadFile(url_match[0]).then(async (response: AxiosResponse) => {
         try {
-          if (!logFile.cut) {
-            // 解压 gzip 数据
-            const inflatedData = pako.inflate(new Uint8Array(response.data));
-            // 创建解压后的 Blob
-            const tarBuffer = new Blob([inflatedData], { type: "application/x-tar" });
-            // 将 Blob 转换为 ArrayBuffer
-            const arrayBuffer = await tarBuffer.arrayBuffer();
-            // 解析 tar 文件
-            const files = await Tar(arrayBuffer);
-            console.log("Extracted files:", files);
-
-            if (files && files.length > 0) {
-              const file = files[files.length - 1];
-              // 获取文件的实际内容
-              const fileContent = await file.contents;
-              // 使用 TextDecoder 解码文件内容
-              const decoder = new TextDecoder();
-              const content = decoder.decode(fileContent);
-
+          //if (!logFile.cut) {
+              const { success, content, message } = await (window as any).electronAPI.openJiraFile(
+                aipInfo.jiraIssueKey,
+                logFile.name,
+                url_match[0]
+              );
+              if (!success) {
+                throw new Error(message);
+              }
+              console.log("content:", content, message);
               // 添加到Tab中
               addTab(logFile, content);
-            }
-          } else {
-            let content = "";
-            if (response.data instanceof ArrayBuffer) {
-              content = new TextDecoder().decode(new Uint8Array(response.data));
-            } else if (response.data instanceof Uint8Array) {
-              content = new TextDecoder().decode(response.data);
-            } else if (typeof response.data === "string") {
-              content = response.data;
-            } else {
-              content = String(response.data);
-            }
-            addTab(logFile, content);
-          }
           // 关闭加载提示，显示成功消息
           loadingMessage.close();
           ElMessage.success(`${logFile.name} 加载完成`);
@@ -360,7 +333,6 @@ const logDbClickedHandle = async (row: any, column: any, event: Event) => {
           loadingMessage.close();
           ElMessage.error(`处理文件 ${logFile.name} 时出错: ${error}`);
         }
-      });
     } else {
       console.log("download file:can't find match params,url:", url);
       loadingMessage.close();
