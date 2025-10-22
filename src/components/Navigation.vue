@@ -3,6 +3,7 @@
     <el-menu
     :default-active="currentActive"
     class="sidebar-menu"
+    collapse="true"
     @select="handleMenuSelect"
     >
     <el-menu-item index="jiraAnalysis" >
@@ -51,7 +52,7 @@ defineExpose({
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 .sidebar-menu {
-  width: 200px;
+  max-width: 200px;
   height: 100vh;
   background: #f5f7fa;
   border-right: 1px solid #e2e8f0;
