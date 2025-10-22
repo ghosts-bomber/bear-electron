@@ -1,19 +1,19 @@
 <template>
   <div class="navigation">
     <el-menu
-    default-active="/aipgc/login"
+    :default-active="currentActive"
     class="sidebar-menu"
-    router="true"
+    @select="handleMenuSelect"
     >
-    <el-menu-item index="/aipgc/login" >
+    <el-menu-item index="jiraAnalysis" >
       <el-icon><DataAnalysis /></el-icon>
       <template #title>Jira分析</template>
     </el-menu-item>
-    <el-menu-item index="/about">
+    <el-menu-item index="log">
       <el-icon> <Document /></el-icon>
       <template #title>日志分析</template>
     </el-menu-item>
-    <el-menu-item index="/element-demo">
+    <el-menu-item index="record">
       <el-icon><VideoCamera /></el-icon>
       <template #title>Record分析</template>
     </el-menu-item>
@@ -22,28 +22,25 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, watch, onMounted } from 'vue'
-import { useRouter, useRoute } from 'vue-router'
+import { ref } from 'vue'
 
-const router = useRouter()
-const route = useRoute()
+// 当前激活的菜单项
+const currentActive = ref('jiraAnalysis')
 
-// 定义菜单项路由列表
-const menuRoutes = ['/aipgc', '/log', '/recorder']
+// 定义事件
+const emit = defineEmits<{
+  menuSelect: [key: string]
+}>()
 
-// 组件挂载时处理默认路由
-onMounted(() => {
-  // 只有在当前路由是根路径时才跳转到第一个菜单项
-  if (route.path === '/' || route.path === '') {
-    // 使用 el-menu 的 default-active 属性，它会自动处理路由跳转
-    // 这里不需要手动跳转，因为 el-menu 的 default-active="/aipgc" 已经设置了
-    console.log('默认路由已设置到第一个菜单项')
-  }
-})
+// 处理菜单选择
+const handleMenuSelect = (key: string) => {
+  currentActive.value = key
+  emit('menuSelect', key)
+}
 
-// 监听路由变化
-watch(route, (newRoute) => {
-  console.log('当前路由:', newRoute.path)
+// 暴露给父组件的方法和数据
+defineExpose({
+  currentActive
 })
 </script>
 

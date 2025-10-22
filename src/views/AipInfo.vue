@@ -1,14 +1,5 @@
 <template>
   <div class="aip-info-container">
-    <el-button
-      class="open-root-btn"
-      type="primary"
-      size="small"
-      style="position: absolute; top: 16px; left: 16px; z-index: 100"
-      @click="openRootPage"
-    >
-      打开首页
-    </el-button>
     <div class="left-panel" :style="{ width: leftPanelWidth + 'px' }">
       <el-form label-position="right" label-width="auto" style="max-width: 600px">
         <el-form-item label="aip" label-position="right">
@@ -510,9 +501,6 @@ const getRowClassName = ({ row }: { row: LogFileInfo }): string => {
   return isTimeInRange(row.name) ? "highlight-row" : "";
 };
 
-const openRootPage = () => {
-  window.open("/", "_blank");
-};
 </script>
 
 <style scoped>

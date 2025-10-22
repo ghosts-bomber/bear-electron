@@ -105,7 +105,9 @@ import {
 import PTApi from "@/api/platform";
 import { useAipStore } from "@/store";
 import { ElMessage } from "element-plus";
-
+const emit = defineEmits<{
+  'search-success': (aipCode: string) => void;
+}>();
 const select_data = reactive([
   { key: "AIP", val: "AIP" },
   { key: "GC", val: "GC" },
@@ -116,7 +118,6 @@ const input = ref("");
 const select = ref("");
 const isSearching = ref(false);
 const aipStore = useAipStore();
-const router = useRouter();
 
 // 最近搜索记录
 const recentSearches = ref<Array<{ type: string; code: string }>>([]);
@@ -200,7 +201,7 @@ async function searchHandle() {
       saveSearchRecord(select.value, aipcode);
 
       ElMessage.success("搜索成功！");
-      router.push({ name: "aipInfo", params: { code: aipcode } });
+      emit('search-success', aipcode);
     } else {
       ElMessage.warning("未找到相关信息，请检查 JIRA 号码是否正确");
     }

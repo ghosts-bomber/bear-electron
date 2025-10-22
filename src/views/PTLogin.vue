@@ -126,7 +126,9 @@ const loginData = ref<PTLoginData>({
   username: "",
   password: "",
 });
-
+const emit = defineEmits<{
+  loginSuccess: []
+}>();
 // 登录
 async function handleLoginSubmit() {
   loading.value = true;
@@ -137,7 +139,7 @@ async function handleLoginSubmit() {
         setPFToken(access_token);
         console.log("access token:", access_token);
         ElMessage.success("登录成功！");
-        router.push({ name: "AipSearch" });
+        emit('loginSuccess');
       } else {
         console.log("login respone:", data);
         ElMessage.error("登录失败，请检查账户信息");
@@ -157,24 +159,6 @@ onMounted(() => {
     router.push({ name: "AipSearch" });
   }
 });
-
-function parseRedirect(): {
-  path: string;
-  queryParams: Record<string, string>;
-} {
-  const query: LocationQuery = route.query;
-  const redirect = (query.redirect as string) ?? "/";
-
-  const url = new URL(redirect, window.location.origin);
-  const path = url.pathname;
-  const queryParams: Record<string, string> = {};
-
-  url.searchParams.forEach((value, key) => {
-    queryParams[key] = value;
-  });
-
-  return { path, queryParams };
-}
 
 function checkCapslock(event: KeyboardEvent) {
   if (event instanceof KeyboardEvent) {
