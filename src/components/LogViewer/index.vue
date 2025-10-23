@@ -70,7 +70,7 @@ import { ChatDotSquare, Close, Delete } from "@element-plus/icons-vue";
 
 interface Props {
   content: string;
-  fileName?: string;
+  fileName: string;
 }
 
 const props = defineProps<Props>();

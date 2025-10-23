@@ -5,10 +5,11 @@ export interface ChartConfig {
 }
 
 export interface PluginResult {
-  type: "html" | "chart" | "mixed";
+  type: "html" | "chart" | "mixed" | "text" | "image" | "log";
   html?: string;
   chart?: ChartConfig;
   summary?: string;
+  data?: any;
 }
 
 export interface PluginContext {
