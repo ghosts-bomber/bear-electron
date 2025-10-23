@@ -3,7 +3,7 @@
     <el-menu
     :default-active="currentActive"
     class="sidebar-menu"
-    collapse="true"
+    :collapse="true"
     @select="handleMenuSelect"
     >
     <el-menu-item index="jiraAnalysis" >

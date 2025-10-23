@@ -129,6 +129,7 @@ interface LogFileInfo {
   name: string;
   objName: string;
   updateTime: string;
+  containErrorTime?: boolean;
 }
 
 interface AipDataInfo {
@@ -169,6 +170,9 @@ PTApi.aipDataInfo(aipInfo.id)
       aipDataInfo.logFiles = response.logFiles || [];
       aipDataInfo.record3dayLinks = response.record3dayLinks || [];
       aipDataInfo.ossName = response.ossName;
+      for(let logFile of aipDataInfo.logFiles){
+        logFile.containErrorTime = isTimeInRange(logFile.name);
+      }
     }
     console.log("aipDataInfo:", aipDataInfo);
   })
@@ -235,26 +239,17 @@ const removeTab = (targetName: string | number) => {
 
 // 添加新Tab
 const addTab = (logFile: LogFileInfo, content: string) => {
-  // 检查是否已经打开了这个文件
-  const existingTab = openTabs.value.find((tab) => tab.logFile.objName === logFile.objName);
+  // 创建新tab
+  const newTab: LogTab = {
+    id: generateTabId(logFile),
+    name: truncateFileName(logFile.name),
+    fullName: logFile.name,
+    content: content,
+    logFile: logFile,
+  };
 
-  if (existingTab) {
-    // 如果已经打开，切换到该tab并更新内容
-    activeTab.value = existingTab.id;
-    existingTab.content = content;
-  } else {
-    // 创建新tab
-    const newTab: LogTab = {
-      id: generateTabId(logFile),
-      name: truncateFileName(logFile.name),
-      fullName: logFile.name,
-      content: content,
-      logFile: logFile,
-    };
-
-    openTabs.value.push(newTab);
-    activeTab.value = newTab.id;
-  }
+  openTabs.value.push(newTab);
+  activeTab.value = newTab.id;
 };
 
 // 处理Tab点击
@@ -281,6 +276,12 @@ const showTabContextMenu = (event: MouseEvent, tab: LogTab) => {
 
 const logDbClickedHandle = async (row: any, column: any, event: Event) => {
   let logFile = row as LogFileInfo;
+  const existingTab = openTabs.value.find((tab) => tab.logFile.objName === logFile.objName);
+  if(existingTab){
+     // 如果已经打开，切换到该tab并更新内容
+    activeTab.value = existingTab.id;
+    return
+  }
   let url: string = "";
 
   // 显示加载状态
@@ -313,7 +314,6 @@ const logDbClickedHandle = async (row: any, column: any, event: Event) => {
           if (!success) {
             throw new Error(message);
           }
-          console.log("content:", content, message);
           // 添加到Tab中
           addTab(logFile, content);
           // 关闭加载提示，显示成功消息
@@ -495,12 +495,9 @@ const isTimeInRange = (fileName: string): boolean => {
   const ret = problemTime >= startTime && problemTime <= endTime;
   return ret;
 };
-
-// 获取行的CSS类名
 const getRowClassName = ({ row }: { row: LogFileInfo }): string => {
-  return isTimeInRange(row.name) ? "highlight-row" : "";
+  return row.containErrorTime ? "highlight-row" : "";
 };
-
 </script>
 
 <style scoped>

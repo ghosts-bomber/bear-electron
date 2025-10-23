@@ -109,16 +109,12 @@
 </template>
 
 <script setup lang="ts">
-import { LocationQuery, useRoute } from "vue-router";
 import PTApi, { type PTLoginData } from "@/api/platform";
 import router from "@/router";
-import type { FormInstance } from "element-plus";
 import { getPFToken, setPFToken } from "@/utils/auth";
 import { User, Lock, DataAnalysis, CircleCheck, InfoFilled } from "@element-plus/icons-vue";
 import { ref,onMounted } from "vue";
 import {ElMessage} from "element-plus";
-
-const route = useRoute();
 
 const loading = ref(false);
 const isCapslock = ref(false);

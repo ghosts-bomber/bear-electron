@@ -76,6 +76,7 @@ export const openJiraFileHandler = async (_event: any, jira_id: string, file_nam
       console.log(`下载文件: ${filePath}`);
       await downloadFile(file_url, filePath);
     }
+    // TODO 实现已经解压后的文件直接打开
     // 解压文件
     const extractFiles = await extractFile(filePath, jiraDir);
     console.log(`解压文件: ${extractFiles}`);
