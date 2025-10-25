@@ -1,9 +1,51 @@
+export type BlockType = "text" | "log" | "image" | "chart"
+export interface TextData {
+  text: string;
+}
+export interface LogItem {
+   line: number; text: string 
+}
+export interface LogData {
+  logs: LogItem[];
+}
+export interface ChartData {
+  title: string;
+  option: any;
+  data?: any;
+}
+export type PluginData = TextData | LogData | ChartData
+export interface AnalysisPluginResults {
+  type:BlockType;
+  data:PluginData;
+}
+export interface IAnalysisPlugin {
+  id: string;
+  name: string;
+  description: string;
+  process: (
+    fileName:string,
+    content: string,
+  ) => Promise<AnalysisPluginResults[]>;
+}
+export const composeTextDataResult = (text: string): AnalysisPluginResults => ({
+  type: "text",
+  data: { text },
+})
+export const composeLogDataResult = (logs: LogData): AnalysisPluginResults => ({
+  type: "log",
+  data: logs,
+})
+export const composeChartDataResult = (description:string,option: any): AnalysisPluginResults => ({
+  type: "chart",
+  data: { description, option },
+})
+
+
 export interface ChartConfig {
   type: "echarts";
   option: any;
   data?: any;
 }
-
 export interface PluginResult {
   type: "html" | "chart" | "mixed" | "text" | "image" | "log";
   html?: string;

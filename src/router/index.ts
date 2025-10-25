@@ -43,22 +43,6 @@ const routes: RouteRecordRaw[] = [
       },
     ],
   },
-  {
-    path: '/about',
-    name: 'About',
-    component: () => import('@/views/About.vue'),
-    meta: {
-      title: '关于'
-    }
-  },
-  {
-    path: '/element-demo',
-    name: 'ElementDemo',
-    component: () => import('@/views/ElementDemo.vue'),
-    meta: {
-      title: 'Element-Plus 示例'
-    }
-  },
   // 重定向到首页
   {
     path: '/:pathMatch(.*)*',

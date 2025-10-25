@@ -47,6 +47,10 @@
       <div v-show="showRightPanel" class="rich-text-container">
         <RichTextPanel ref="richTextPanelRef" :editor-ref="monacoEditorRef as any" />
       </div>
+      <div v-show="showRightPanel" class="dynamic-display-container">
+        <button @click="addDynamicItems">测试动态窗口</button>
+        <DynamicDisplay ref="dynamicDisplayRef" />
+      </div>
     </div>
 
     <!-- 显示面板按钮 -->
@@ -65,6 +69,7 @@ import { ref, onMounted, onBeforeUnmount, watch } from "vue";
 import type { Ref } from "vue";
 import MonacoEditor from "@/components/MonacoEditor/index.vue";
 import RichTextPanel from "@/components/RichTextPanel/index.vue";
+import DynamicDisplay from "@/components/DynamicDisplay.vue";
 import type { EditorInstance, Plugin, PluginAction, PluginResult } from "@/types/plugin";
 import { ChatDotSquare, Close, Delete } from "@element-plus/icons-vue";
 
@@ -80,6 +85,7 @@ const emit = defineEmits<{
 
 const monacoEditorRef: Ref<InstanceType<typeof MonacoEditor> | null> = ref(null);
 const richTextPanelRef: Ref<InstanceType<typeof RichTextPanel> | null> = ref(null);
+const dynamicDisplayRef: Ref<InstanceType<typeof DynamicDisplay> | null> = ref(null);
 const logViewerRef: Ref<HTMLElement | null> = ref(null);
 const editorContent = ref<string>(props.content);
 
@@ -213,6 +219,10 @@ onBeforeUnmount(() => {
   document.removeEventListener("mouseup", stopResize);
   window.removeEventListener("resize", debouncedUpdatePanelWidths);
 });
+
+const addDynamicItems = () => {
+    dynamicDisplayRef.value?.addRandomItems(1)
+}
 </script>
 
 <style lang="scss" scoped>
@@ -330,6 +340,29 @@ onBeforeUnmount(() => {
       flex: 1;
       overflow-y: auto;
       background-color: #fff;
+    }
+
+    .dynamic-display-container {
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      background-color: #fff;
+      border-top: 1px solid #dcdfe6;
+
+      button {
+        padding: 8px 16px;
+        margin: 8px;
+        background: #409eff;
+        color: white;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+        flex-shrink: 0;
+
+        &:hover {
+          background: #66b1ff;
+        }
+      }
     }
   }
 
