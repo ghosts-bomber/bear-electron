@@ -18,15 +18,21 @@
             <h1 class="brand-title">AIP/GC 分析平台</h1>
             <div class="feature-list">
               <div class="feature-item">
-                <el-icon size="16" color="#67C23A"><CircleCheck /></el-icon>
+                <el-icon size="16" color="#67C23A">
+                  <CircleCheck />
+                </el-icon>
                 <span>不智能</span>
               </div>
               <div class="feature-item">
-                <el-icon size="16" color="#67C23A"><CircleCheck /></el-icon>
+                <el-icon size="16" color="#67C23A">
+                  <CircleCheck />
+                </el-icon>
                 <span>还很慢</span>
               </div>
               <div class="feature-item">
-                <el-icon size="16" color="#67C23A"><CircleCheck /></el-icon>
+                <el-icon size="16" color="#67C23A">
+                  <CircleCheck />
+                </el-icon>
                 <span>在进步</span>
               </div>
             </div>
@@ -49,14 +55,8 @@
                       <User />
                     </el-icon>
                   </div>
-                  <el-input
-                    ref="username"
-                    v-model="loginData.username"
-                    placeholder="请输入用户名"
-                    name="username"
-                    size="large"
-                    class="custom-input"
-                  />
+                  <el-input ref="username" v-model="loginData.username" placeholder="请输入用户名" name="username"
+                    size="large" class="custom-input" />
                 </div>
               </el-form-item>
 
@@ -68,28 +68,15 @@
                         <Lock />
                       </el-icon>
                     </div>
-                    <el-input
-                      v-model="loginData.password"
-                      placeholder="请输入密码"
-                      type="password"
-                      name="password"
-                      size="large"
-                      class="custom-input"
-                      show-password
-                      @keyup="checkCapslock"
-                      @keyup.enter="handleLoginSubmit"
-                    />
+                    <el-input v-model="loginData.password" placeholder="请输入密码" type="password" name="password"
+                      size="large" class="custom-input" show-password @keyup="checkCapslock"
+                      @keyup.enter="handleLoginSubmit" />
                   </div>
                 </el-form-item>
               </el-tooltip>
-
-              <el-button
-                :loading="loading"
-                type="primary"
-                size="large"
-                class="login-button"
-                @click.prevent="handleLoginSubmit"
-              >
+              <el-checkbox v-model="isSavePassword" label="记住密码" size="large" />
+              <el-button :loading="loading" type="primary" size="large" class="login-button"
+                @click.prevent="handleLoginSubmit">
                 <span v-if="!loading">立即登录</span>
                 <span v-else>登录中...</span>
               </el-button>
@@ -97,7 +84,9 @@
 
             <div class="form-footer">
               <p class="footer-text">
-                <el-icon size="14" color="#909399"><InfoFilled /></el-icon>
+                <el-icon size="14" color="#909399">
+                  <InfoFilled />
+                </el-icon>
                 登录您的中台账户
               </p>
             </div>
@@ -113,12 +102,13 @@ import PTApi, { type PTLoginData } from "@/api/platform";
 import router from "@/router";
 import { getPFToken, setPFToken } from "@/utils/auth";
 import { User, Lock, DataAnalysis, CircleCheck, InfoFilled } from "@element-plus/icons-vue";
-import { ref,onMounted } from "vue";
-import {ElMessage} from "element-plus";
+import { ref,reactive, onMounted } from "vue";
+import { ElMessage } from "element-plus";
 
 const loading = ref(false);
 const isCapslock = ref(false);
-const loginData = ref<PTLoginData>({
+const isSavePassword = ref(true);
+const loginData = reactive<PTLoginData>({
   username: "",
   password: "",
 });
@@ -128,13 +118,17 @@ const emit = defineEmits<{
 // 登录
 async function handleLoginSubmit() {
   loading.value = true;
-  PTApi.login(loginData.value)
+  PTApi.login(loginData)
     .then((data) => {
       const { access_token } = data;
       if (access_token !== "") {
         setPFToken(access_token);
         console.log("access token:", access_token);
         ElMessage.success("登录成功！");
+        window.electronAPI.setPtUsername(loginData.username);
+        if (isSavePassword.value) {
+          window.electronAPI.setPtPassword(loginData.password);
+        }
         emit('loginSuccess');
       } else {
         console.log("login respone:", data);
@@ -150,10 +144,15 @@ async function handleLoginSubmit() {
     });
 }
 
-onMounted(() => {
-  if (getPFToken() !== "") {
-    router.push({ name: "AipSearch" });
+onMounted(async () => {
+  loginData.username = await window.electronAPI.getPtUsername();
+  loginData.password = await window.electronAPI.getPtPassword();
+
+
+  if (loginData.password !== "") {
+    isSavePassword.value = true;
   }
+
 });
 
 function checkCapslock(event: KeyboardEvent) {
@@ -220,6 +219,7 @@ function checkCapslock(event: KeyboardEvent) {
 }
 
 @keyframes float {
+
   0%,
   100% {
     transform: translateY(0) rotate(0deg);
@@ -275,6 +275,7 @@ function checkCapslock(event: KeyboardEvent) {
 }
 
 @keyframes pulse {
+
   0%,
   100% {
     transform: scale(1);
@@ -416,7 +417,7 @@ function checkCapslock(event: KeyboardEvent) {
 }
 
 /* 响应式设计 */
-@media (width <= 968px) {
+@media (width <=968px) {
   .login-content {
     flex-direction: column;
     max-width: 500px;
@@ -435,7 +436,7 @@ function checkCapslock(event: KeyboardEvent) {
   }
 }
 
-@media (width <= 480px) {
+@media (width <=480px) {
   .login-container {
     padding: 10px;
   }

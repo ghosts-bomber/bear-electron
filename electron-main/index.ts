@@ -7,7 +7,7 @@ import { registerIpcHandlers } from "./ipc-handlers"
 const createWindow = () => {
   const win = new BrowserWindow({
     width: 1600,
-    height: 1200,
+    height: 1200, 
     webPreferences: {
       contextIsolation: true, // 启用上下文隔离，确保安全性
       nodeIntegration: false, // 禁用Node集成，通过preload脚本提供API

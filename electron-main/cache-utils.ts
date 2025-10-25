@@ -3,18 +3,17 @@ import fs from "fs";
 import os from "os";
 
 // 获取应用缓存目录的工具函数
-export const getAppCacheDir = async (): Promise<string> => {
+export const getAppCacheDir = (): string => {
   const userDir = os.homedir();
   const appName = 'bear-electron'; // 应用名称
   const cacheDir = path.join(userDir, `.${appName}`);
-  
+
   // 确保缓存目录存在
   try {
-    await fs.promises.access(cacheDir);
+    fs.accessSync(cacheDir);
   } catch {
-    await fs.promises.mkdir(cacheDir, { recursive: true });
+    fs.mkdirSync(cacheDir, { recursive: true });
   }
-  
   return cacheDir;
 };
 
@@ -22,14 +21,14 @@ export const getAppCacheDir = async (): Promise<string> => {
 export const getCacheSubDir = async (subDirName: string): Promise<string> => {
   const cacheDir = await getAppCacheDir();
   const subDir = path.join(cacheDir, subDirName);
-  
+
   // 确保子目录存在
   try {
     await fs.promises.access(subDir);
   } catch {
     await fs.promises.mkdir(subDir, { recursive: true });
   }
-  
+
   return subDir;
 };
 
@@ -55,7 +54,7 @@ export const clearCache = async (subDirName?: string): Promise<void> => {
     try {
       const items = await fs.promises.readdir(cacheDir);
       await Promise.all(
-        items.map(item => 
+        items.map(item =>
           fs.promises.rm(path.join(cacheDir, item), { recursive: true, force: true })
         )
       );
@@ -78,20 +77,20 @@ export const cacheFileExists = async (subDirName: string, fileName: string): Pro
 
 // 获取缓存目录大小
 export const getCacheSize = async (subDirName?: string): Promise<number> => {
-  const targetDir = subDirName 
+  const targetDir = subDirName
     ? path.join(await getAppCacheDir(), subDirName)
     : await getAppCacheDir();
-  
+
   let totalSize = 0;
-  
+
   const calculateSize = async (dirPath: string): Promise<void> => {
     try {
       const items = await fs.promises.readdir(dirPath);
-      
+
       for (const item of items) {
         const itemPath = path.join(dirPath, item);
         const stats = await fs.promises.stat(itemPath);
-        
+
         if (stats.isDirectory()) {
           await calculateSize(itemPath);
         } else {
@@ -102,7 +101,7 @@ export const getCacheSize = async (subDirName?: string): Promise<number> => {
       console.warn(`计算缓存大小失败: ${dirPath}`, error);
     }
   };
-  
+
   await calculateSize(targetDir);
   return totalSize;
 };
@@ -115,7 +114,7 @@ export const getCacheInfo = async (): Promise<{
 }> => {
   const cacheDir = await getAppCacheDir();
   const totalSize = await getCacheSize();
-  
+
   let subDirs: string[] = [];
   try {
     const items = await fs.promises.readdir(cacheDir);
@@ -130,7 +129,7 @@ export const getCacheInfo = async (): Promise<{
   } catch (error) {
     console.warn('获取缓存目录信息失败:', error);
   }
-  
+
   return {
     cacheDir,
     totalSize,

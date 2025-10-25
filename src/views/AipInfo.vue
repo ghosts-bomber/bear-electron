@@ -35,6 +35,7 @@
         style="width: 100%"
         :row-class-name="getRowClassName"
         @row-dblclick="logDbClickedHandle"
+        @row-contextmenu="showRowContextMenu"
       >
         <el-table-column label="文件名" min-width="200" show-overflow-tooltip>
           <template #default="scope">
@@ -89,12 +90,22 @@
         </el-tab-pane>
       </el-tabs>
     </div>
+    
+    <!-- 右键菜单组件 -->
+    <LogTableContextMenu
+      :visible="contextMenuVisible"
+      :position="contextMenuPosition"
+      :log-file="selectedLogFile"
+      :jira-issue-key="aipInfo.jiraIssueKey || ''"
+      @close="closeContextMenu"
+    />
   </div>
 </template>
 
 <script setup lang="ts">
 import PTApi from "@/api/platform";
 import LogViewer from "@/components/LogViewer/index.vue";
+import LogTableContextMenu from "@/components/LogTableContextMenu.vue";
 import { useAipStore } from "@/store";
 import { Document, DocumentCopy } from "@element-plus/icons-vue";
 import type { AxiosResponse } from "axios";
@@ -198,6 +209,11 @@ const dvLink = computed(() => {
 // Tab相关状态
 const openTabs = ref<LogTab[]>([]);
 const activeTab = ref<string>("");
+
+// 右键菜单相关状态
+const contextMenuVisible = ref(false);
+const contextMenuPosition = ref({ x: 0, y: 0 });
+const selectedLogFile = ref<LogFileInfo | null>(null);
 
 // 文件名缩略处理
 const truncateFileName = (name: string, maxLength: number = 25): string => {
@@ -335,7 +351,24 @@ const logDbClickedHandle = async (row: any, column: any, event: Event) => {
     ElMessage.error(`下载文件 ${logFile.name} 时出错`);
   }
 };
+const showRowContextMenu = (row: LogFileInfo, column: any, event: MouseEvent) => {
+  event.preventDefault(); 
+  // 设置选中的日志文件
+  selectedLogFile.value = row;
+  // 设置菜单位置
+  contextMenuPosition.value = {
+    x: event.clientX,
+    y: event.clientY
+  }; 
+  // 显示菜单
+  contextMenuVisible.value = true;
+};
 
+// 关闭右键菜单
+const closeContextMenu = () => {
+  contextMenuVisible.value = false;
+  selectedLogFile.value = null;
+};
 // 添加左右面板宽度控制相关的代码
 const leftPanelWidth = ref(0);
 const isResizing = ref(false);
