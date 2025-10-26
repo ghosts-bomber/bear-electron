@@ -3,7 +3,7 @@ export interface TextData {
   text: string;
 }
 export interface LogItem {
-   line: number; text: string 
+   lineNumber: number; text: string 
 }
 export interface LogData {
   logs: LogItem[];
@@ -14,7 +14,7 @@ export interface ChartData {
   data?: any;
 }
 export type PluginData = TextData | LogData | ChartData
-export interface AnalysisPluginResults {
+export interface AnalysisPluginResult {
   type:BlockType;
   data:PluginData;
 }
@@ -32,7 +32,7 @@ export abstract class IAnalysisPlugin {
   abstract process(
     fileName: string,
     content: string,
-  ): Promise<AnalysisPluginResults[]>;
+  ): Promise<AnalysisPluginResult[]>;
 
   // 基类维护所有子类的单例实例，按构造函数区分
   private static _instances = new WeakMap<Function, IAnalysisPlugin>();
@@ -52,15 +52,15 @@ export abstract class IAnalysisPlugin {
   }
 }
 
-export const composeTextDataResult = (text: string): AnalysisPluginResults => ({
+export const composeTextDataResult = (text: string): AnalysisPluginResult => ({
   type: "text",
   data: { text },
 })
-export const composeLogDataResult = (logs: LogItem[]): AnalysisPluginResults => ({
+export const composeLogDataResult = (logs: LogItem[]): AnalysisPluginResult => ({
   type: "log",
   data: { logs },
 })
-export const composeChartDataResult = (title:string,option: any): AnalysisPluginResults => ({
+export const composeChartDataResult = (title:string,option: any): AnalysisPluginResult => ({
   type: "chart",
   data: { title, option },
 })

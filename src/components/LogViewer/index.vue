@@ -45,7 +45,7 @@
         </div>
       </div>
       <div v-show="showRightPanel" class="dynamic-display-container">
-        <button @click="addDynamicItems">测试动态窗口</button>
+        <button v-if="false" @click="addDynamicItems">测试动态窗口</button>
         <DynamicDisplay ref="dynamicDisplayRef" @lineClick="handleLineClick" />
       </div>
     </div>
@@ -66,7 +66,7 @@ import { ref, onMounted, onBeforeUnmount, watch } from "vue";
 import type { Ref } from "vue";
 import MonacoEditor from "@/components/MonacoEditor/index.vue";
 import DynamicDisplay from "@/components/DynamicDisplay.vue";
-import type { AnalysisPluginResults } from "@/types/plugin";
+import type { AnalysisPluginResult } from "@/types/plugin";
 import { ChatDotSquare, Close, Delete } from "@element-plus/icons-vue";
 
 interface Props {
@@ -119,7 +119,7 @@ const handleContextMenuAction = async (action: {
   value?: string;
   pluginName?: string;
   pluginId?: string;
-  result?:AnalysisPluginResults[];
+  result?:AnalysisPluginResult[];
 }): Promise<void> => {
   // Forward the action to RichTextPanel for display
   if(dynamicDisplayRef.value){
@@ -168,8 +168,8 @@ const handleMouseMove = (e: MouseEvent) => {
   }
 };
 
-function handleLineClick(line: number) {
-  const ln = Math.max(1, Math.floor(line))
+function handleLineClick(lineNumber: number) {
+  const ln = Math.max(1, Math.floor(lineNumber))
   // 调用 MonacoEditor 暴露的跳转函数
   monacoEditorRef.value?.goToLine?.(ln)
 }

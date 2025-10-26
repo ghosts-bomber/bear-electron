@@ -1,4 +1,6 @@
-import type { Plugin, PluginResult } from "@/types/plugin";
+import type { AnalysisPluginResult, LogItem } from "@/types/plugin";
+import { IAnalysisPlugin, composeTextDataResult, composeLogDataResult, composeChartDataResult } from "@/types/plugin";;
+
 
 interface CpuLogPoint {
   time: string; // 08:31:30.9
@@ -15,11 +17,16 @@ interface CpuLogPoint {
   iowaitRatio: number;
 }
 
-const plugin: Plugin = {
-  id: "cpu-log-usage-analyzer",
-  name: "CPU使用率分析",
-  description: "解析resource monitor日志，绘制cpu使用率和iowait折线图",
-  async process(content: string): Promise<PluginResult | PluginResult[]> {
+class CpuUsageAnalyzerPlugin extends IAnalysisPlugin {
+  private constructor() {
+    super("cpu-log-usage-analyzer", "CPU使用率分析", "解析resource monitor日志，绘制cpu使用率和iowait折线图");
+  }
+
+  async process(
+    fileName: string,
+    content: string,
+  ): Promise<AnalysisPluginResult[]> {
+    const results: AnalysisPluginResult[] = [];
     const lines = content.split("\n").filter((l) => l.trim());
     const cpuPoints: CpuLogPoint[] = [];
     let group: string[] = [];
@@ -65,6 +72,10 @@ const plugin: Plugin = {
         }
       }
     }
+    if (cpuPoints.length === 0) {
+      results.push(composeTextDataResult("没有解析到CPU使用率数据"));
+      return results;
+    }
     // 按时间分组
     const timeGroups = new Map<string, CpuLogPoint[]>();
     for (const point of cpuPoints) {
@@ -73,7 +84,6 @@ const plugin: Plugin = {
     }
     const times = Array.from(timeGroups.keys()).sort();
     // 生成 use is 图表数据
-    const useCharts: PluginResult[] = [];
     for (let cpuId = 0; cpuId < 12; cpuId++) {
       const series = [
         {
@@ -123,13 +133,12 @@ const plugin: Plugin = {
           { type: "inside", xAxisIndex: 0 },
         ],
       };
-      useCharts.push({
-        type: "mixed",
-        summary: `📊 CPU ${cpuId} use is 使用率趋势 - ${times.length} 个时间点`,
-        html: `<div class='analysis-summary'>CPU ${cpuId}，共${times.length}个时间点，${series[0].data.length}条数据</div>`,
-        chart: { type: "echarts", option },
-      });
+      results.push(composeChartDataResult(
+        `📊 CPU ${cpuId} use is 使用率趋势 - ${times.length} 个时间点`,
+        option
+      ));
     }
+
     // 生成 iowait 比值图表数据
     const iowaitSeries = [];
     for (let cpuId = 0; cpuId < 12; cpuId++) {
@@ -187,16 +196,12 @@ const plugin: Plugin = {
         { type: "inside", xAxisIndex: 0 },
       ],
     };
-    return [
-      ...useCharts,
-      {
-        type: "mixed",
-        summary: `📊 CPU iowait比值趋势 - ${times.length} 个时间点`,
-        html: `<div class='analysis-summary'>共${times.length}个时间点，${cpuPoints.length}条数据</div>`,
-        chart: { type: "echarts", option: iowaitOption },
-      },
-    ];
-  },
+    results.push(composeChartDataResult(
+      `📊 CPU iowait 比值趋势 - ${times.length} 个时间点`,
+      iowaitOption
+    ));
+    return results
+  }
 };
 
 function getField(line: string, key: string): number {
@@ -214,4 +219,4 @@ function timeStringToTimestamp(time: string): number {
   return now.getTime();
 }
 
-export default plugin;
+export default CpuUsageAnalyzerPlugin.getInstance();

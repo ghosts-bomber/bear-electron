@@ -1,20 +1,20 @@
 import type {IAnalysisPlugin} from "@/types/plugin";
 import UpgradeDetectorPlugin from "./upgrade-detector";
-import stackTraceDetectorPlugin from "./stack-trace-detector";
-import cpuUsageAnalyzerPlugin from "./cpu-log-usage-analyzer";
-import memoryUsageAnalyzerPlugin from "./memory-usage-analyzer";
+import StackTraceDetectorPlugin from "./stack-trace-detector";
+import CpuUsageAnalyzerPlugin from "./cpu-log-usage-analyzer";
+import MemoryUsageAnalyzerPlugin from "./memory-usage-analyzer";
 import gnssLidarWheelAnalysisPlugin from "./gnss-lidar-wheel-analysis";
-import cameraFrameRateAnalysisPlugin from "./camera-frame-rate-analysis";
+import CameraFrameRateAnalysisPlugin from "./camera-frame-rate-analysis";
 import textExportPlugin from "./text-export";
 import GnssLogAnalysisPlugin from "./gnss-log-analysis";
 // 导出所有插件
 export const AnalysisPlugins: IAnalysisPlugin[] = [
   UpgradeDetectorPlugin,
-  // stackTraceDetectorPlugin,
-  // cpuUsageAnalyzerPlugin,
-  // memoryUsageAnalyzerPlugin,
+  StackTraceDetectorPlugin,
+  CpuUsageAnalyzerPlugin,
+  MemoryUsageAnalyzerPlugin,
   // gnssLidarWheelAnalysisPlugin,
-  // cameraFrameRateAnalysisPlugin,
+  CameraFrameRateAnalysisPlugin,
   // textExportPlugin,
   GnssLogAnalysisPlugin,
 ];

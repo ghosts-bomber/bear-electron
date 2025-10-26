@@ -1,4 +1,5 @@
-import type { Plugin, PluginResult } from "@/types/plugin";
+import type { AnalysisPluginResult, LogItem } from "@/types/plugin";
+import { IAnalysisPlugin, composeTextDataResult, composeLogDataResult, composeChartDataResult } from "@/types/plugin";;
 
 interface MemoryUsageData {
   time: number;
@@ -14,11 +15,16 @@ interface MemoryAnalysisResult {
   dataCount: number;
 }
 
-const memoryUsageAnalyzerPlugin: Plugin = {
-  id: "memory-usage-analyzer",
-  name: "Neodrive内存使用率分析",
-  description: "分析日志中的Neodrive内存使用率数据并绘制趋势图",
-  process: async (content: string): Promise<PluginResult> => {
+class MemoryUsageAnalyzerPlugin extends IAnalysisPlugin {
+  private constructor() {
+    super("memory-usage-analyzer", "Neodrive内存使用率分析", "分析日志中的Neodrive内存使用率数据并绘制趋势图");
+  }
+
+  async process(
+    fileName: string,
+    content: string,
+  ): Promise<AnalysisPluginResult[]> {
+    const results: AnalysisPluginResult[] = [];
     const lines = content.split("\n");
 
     // 时间转换函数
@@ -72,7 +78,10 @@ const memoryUsageAnalyzerPlugin: Plugin = {
         }
       }
     }
-
+    if (memoryUsage.length === 0) {
+      results.push(composeTextDataResult("无内存数据"));
+      return results;
+    }
     // 分析内存数据
     const data: MemoryUsageData[] = [];
 
@@ -227,118 +236,13 @@ const memoryUsageAnalyzerPlugin: Plugin = {
         ],
       };
     };
-    const errorVal = 25000;
-    const warningVal = 20000;
-    // 生成分析报告
-    const severity =
-      maxUsage > errorVal ? "critical" : maxUsage > warningVal ? "warning" : "normal";
-    const severityText =
-      severity === "critical" ? "严重" : severity === "warning" ? "警告" : "正常";
-    const severityColor =
-      severity === "critical" ? "#f56c6c" : severity === "warning" ? "#e6a23c" : "#67c23a";
-
-    const html = `
-      <div class="plugin-result memory-usage-analysis">
-        <h3>💾 Neodrive内存使用率分析报告</h3>
-        
-        <div class="analysis-summary" style="border-color: ${severityColor}">
-          <div class="summary-header">
-            <span class="status-icon">${maxUsage > warningVal ? "⚠️" : "✅"}</span>
-            <span class="status-text">
-              ${maxUsage > warningVal ? `检测到较高内存使用率` : "内存使用率正常"}
-            </span>
-            <span class="severity-badge" style="background-color: ${severityColor}">
-              ${severityText}
-            </span>
-          </div>
-          
-          <div class="overall-stats">
-            <div class="stat-card">
-              <div class="stat-label">平均使用率</div>
-              <div class="stat-value">${avgUsage.toFixed(2)} MB</div>
-            </div>
-            <div class="stat-card">
-              <div class="stat-label">最高使用率</div>
-              <div class="stat-value ${maxUsage > warningVal ? "high" : ""}">${maxUsage.toFixed(2)} MB</div>
-            </div>
-            <div class="stat-card">
-              <div class="stat-label">最低使用率</div>
-              <div class="stat-value">${minUsage.toFixed(2)} MB</div>
-            </div>
-            <div class="stat-card">
-              <div class="stat-label">数据点数</div>
-              <div class="stat-value">${analysisResult.dataCount}</div>
-            </div>
-          </div>
-        </div>
-        
-        ${
-          !debugInfo.hasData
-            ? `
-          <div class="no-data-message" style="text-align: center; padding: 20px; color: #666;">
-            <h4>无法解析内存数据</h4>
-            <p>请检查日志格式是否包含 'neodrive memory' 关键字</p>
-          </div>
-        `
-            : ""
-        }
-        
-        <div class="analysis-info">
-          <h4>💡 分析说明</h4>
-          <div class="info-content">
-            <p><strong>监控对象:</strong> Neodrive进程内存使用率</p>
-            <p><strong>时间范围:</strong> ${startTime} - ${endTime}</p>
-            <p><strong>数据单位:</strong> MB (兆字节)</p>
-            <p><strong>Y轴范围:</strong> 0 - 25,000 MB</p>
-            
-            <div class="debug-info">
-              <h5>📋 解析统计</h5>
-              <div class="debug-stats">
-                <p><span class="debug-item">总行数: ${debugInfo.totalLines}</span></p>
-                <p><span class="debug-item">时间匹配: ${debugInfo.timeMatches}</span></p>
-                <p><span class="debug-item">内存匹配: ${debugInfo.memoryMatches}</span></p>
-                <p><span class="debug-item">时间点: ${debugInfo.timePointsFound}</span></p>
-              </div>
-              
-              ${
-                debugInfo.sampleLines.length > 0
-                  ? `
-                <details class="sample-lines" style="margin-top: 8px;">
-                  <summary>示例内存日志行</summary>
-                  <div style="font-family: monospace; font-size: 12px; margin-top: 4px;">
-                    ${debugInfo.sampleLines
-                      .map(
-                        (line, i) =>
-                          `<div style="margin: 2px 0; color: #666;">${i + 1}: ${line}...</div>`
-                      )
-                      .join("")}
-                  </div>
-                </details>
-              `
-                  : ""
-              }
-            </div>
-          </div>
-        </div>
-        
-        <div class="analysis-time">
-          <small>分析完成时间: ${new Date().toLocaleString()}</small>
-        </div>
-      </div>
+    const summary: string = `
+      平均使用率: ${avgUsage.toFixed(2)} MB, 最高使用率: ${maxUsage.toFixed(2)} MB, 最低使用率: ${minUsage.toFixed(2)} MB
     `;
-
-    const summary = `检测到 ${analysisResult.dataCount} 个内存数据点，最高使用率 ${maxUsage.toFixed(2)} MB，平均使用率 ${avgUsage.toFixed(2)} MB`;
-
-    return {
-      type: "mixed",
-      summary,
-      html,
-      chart: {
-        type: "echarts",
-        option: generateEChartsConfig(),
-      },
-    };
-  },
+    results.push(composeTextDataResult(summary));
+    results.push(composeChartDataResult("neodrive进程内存使用率趋势图", generateEChartsConfig()));
+    return results
+  }
 };
 
-export default memoryUsageAnalyzerPlugin;
+export default MemoryUsageAnalyzerPlugin.getInstance();

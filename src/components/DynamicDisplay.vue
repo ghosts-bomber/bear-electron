@@ -21,7 +21,7 @@ import TextBlock from '@/components/PluginResult/TextBlock.vue'
 import LogBlock from '@/components/PluginResult/LogBlock.vue'
 import ChartBlock from '@/components/PluginResult/ChartBlock.vue'
 import ImageBlock from '@/components/PluginResult/ImageBlock.vue'
-import type { BlockType, PluginData, LogData, AnalysisPluginResults } from '@/types/plugin'
+import type { BlockType, PluginData, LogData, AnalysisPluginResult } from '@/types/plugin'
 const emit = defineEmits<{
   lineClick:[line:number]
 }>()
@@ -71,7 +71,7 @@ function addRandomItems(n = 1) {
     pushItem('text', ({ text: '动态文字示例 — #' + itemIdCounter }))
     const logs: LogData = { logs: [] }
     for (let i = -0; i < 2000; i++) {
-      logs.logs.push({ line: i, text: '动态日志示例 ========++=================— #' + itemIdCounter })
+      logs.logs.push({ lineNumber: i, text: '动态日志示例 ========++=================— #' + itemIdCounter })
     }
     pushItem('log', logs)
     const option = {
@@ -95,9 +95,9 @@ function addRandomItems(n = 1) {
 }
 
 // 处理日志行点击事件
-const handleLineClick = (line: number) => {
-  console.log(`点击了日志行号: ${line}`)
-  emit('lineClick', line)
+const handleLineClick = (lineNumber: number) => {
+  console.log(`点击了日志行号: ${lineNumber}`)
+  emit('lineClick', lineNumber)
 }
 const handleEditorAction = async (action: {
   action: string;
@@ -105,7 +105,7 @@ const handleEditorAction = async (action: {
   value?: string;
   pluginName?: string;
   pluginId?: string;
-  result?: AnalysisPluginResults[];
+  result?: AnalysisPluginResult[];
 }) => {
   const timestamp = new Date().toLocaleTimeString();
   let actionContent = "";

@@ -1,4 +1,7 @@
-import type { Plugin, PluginResult } from "@/types/plugin";
+import type { AnalysisPluginResult, LogItem } from "@/types/plugin";
+import { IAnalysisPlugin, composeTextDataResult, composeLogDataResult, composeChartDataResult } from "@/types/plugin";;
+
+
 
 interface CameraFrameRate {
   time: string;
@@ -13,55 +16,32 @@ interface TimeRange {
   end: number;
 }
 
-const plugin: Plugin = {
-  id: "camera-frame-rate-analysis",
-  name: "相机帧率分析",
-  description: "分析相机日志中的传感器帧率数据并生成可视化图表",
-  async process(content: string): Promise<PluginResult | PluginResult[]> {
-    try {
-      const lines = content.split("\n").filter((line) => line.trim());
+class CameraFrameRateAnalysisPlugin extends IAnalysisPlugin {
+  private constructor() {
+    super("camera-frame-rate-analysis", "相机帧率分析", "分析相机日志中的传感器帧率数据并生成可视化图表");
+  }
+  async process(fileName: string, content: string): Promise<AnalysisPluginResult[]> {
+    const results: AnalysisPluginResult[] = [];
+    const lines = content.split("\n").filter((line) => line.trim());
 
-      if (lines.length === 0) {
-        return {
-          type: "html",
-          summary: "❌ 未找到有效的日志数据",
-          html: '<div class="no-data">请提供包含相机帧率数据的日志文件</div>',
-        };
-      }
 
-      // 解析时间范围
-      const timeRange = parseTimeRange(lines);
-      if (!timeRange) {
-        return {
-          type: "html",
-          summary: "❌ 无法解析日志时间范围",
-          html: '<div class="error">日志格式不正确，无法解析时间信息</div>',
-        };
-      }
-
-      // 解析相机帧率数据
-      const frameRateData = parseCameraFrameRates(lines);
-      if (frameRateData.length === 0) {
-        return {
-          type: "html",
-          summary: "❌ 未找到相机帧率数据",
-          html: '<div class="no-data">日志中未找到相机帧率相关信息</div>',
-        };
-      }
-
-      // 生成分析结果
-      const results = generateAnalysis(frameRateData, timeRange);
-
+    // 解析时间范围
+    const timeRange = parseTimeRange(lines);
+    if (!timeRange) {
+      results.push(composeTextDataResult(" ❌ 无法解析日志时间范围"));
       return results;
-    } catch (error) {
-      console.error("相机帧率分析出错:", error);
-      return {
-        type: "html",
-        summary: "❌ 分析过程中出现错误",
-        html: `<div class="error">错误: ${error instanceof Error ? error.message : String(error)}</div>`,
-      };
     }
-  },
+
+    // 解析相机帧率数据
+    const frameRateData = parseCameraFrameRates(lines);
+    if (frameRateData.length === 0) {
+      results.push(composeTextDataResult("❌ 未找到有效的相机帧率日志数据"));
+      return results;
+    }
+    results.push(analyzeFrameRate1(frameRateData, timeRange));
+    results.push(analyzeFrameRate2(frameRateData, timeRange));
+    return results;
+  }
 };
 
 function parseTimeRange(lines: string[]): TimeRange | null {
@@ -151,19 +131,7 @@ function parseCameraFrameRates(lines: string[]): CameraFrameRate[] {
   return frameRateData;
 }
 
-function generateAnalysis(frameRateData: CameraFrameRate[], timeRange: TimeRange): PluginResult[] {
-  const results: PluginResult[] = [];
-
-  // 生成第一列帧率图表
-  results.push(analyzeFrameRate1(frameRateData, timeRange));
-
-  // 生成第二列帧率图表
-  results.push(analyzeFrameRate2(frameRateData, timeRange));
-
-  return results;
-}
-
-function analyzeFrameRate1(frameRateData: CameraFrameRate[], timeRange: TimeRange): PluginResult {
+function analyzeFrameRate1(frameRateData: CameraFrameRate[], timeRange: TimeRange): AnalysisPluginResult {
   // 按传感器分组数据
   const sensorGroups = new Map<
     string,
@@ -266,36 +234,14 @@ function analyzeFrameRate1(frameRateData: CameraFrameRate[], timeRange: TimeRang
       { type: "inside", xAxisIndex: 0 },
     ],
   };
-
-  return {
-    type: "mixed",
-    summary: `📊 相机服务帧率分析 (发送到SD) - 共${frameRateData.length}个数据点，${sensors.length}个传感器`,
-    html: `
-      <div class="analysis-summary">
-        <div class="stats-grid">
-          <div class="stat-item">
-            <span class="stat-label">数据点数量:</span>
-            <span class="stat-value">${frameRateData.length}</span>
-          </div>
-          <div class="stat-item">
-            <span class="stat-label">传感器数量:</span>
-            <span class="stat-value">${sensors.length}</span>
-          </div>
-          <div class="stat-item">
-            <span class="stat-label">时间范围:</span>
-            <span class="stat-value">${formatTimeFromSeconds(timeRange.begin)} - ${formatTimeFromSeconds(timeRange.end)}</span>
-          </div>
-        </div>
-      </div>
-    `,
-    chart: {
-      type: "echarts",
-      option: option,
-    },
-  };
+  const summary = `📊 相机服务帧率分析 (发送到SD) - 共${frameRateData.length}个数据点，${sensors.length}个传感器`;
+  return composeChartDataResult(
+    summary,
+    option,
+  );
 }
 
-function analyzeFrameRate2(frameRateData: CameraFrameRate[], timeRange: TimeRange): PluginResult {
+function analyzeFrameRate2(frameRateData: CameraFrameRate[], timeRange: TimeRange): AnalysisPluginResult {
   // 按传感器分组数据
   const sensorGroups = new Map<
     string,
@@ -398,34 +344,14 @@ function analyzeFrameRate2(frameRateData: CameraFrameRate[], timeRange: TimeRang
       { type: "inside", xAxisIndex: 0 },
     ],
   };
+  const summary =  `📊 相机服务帧率分析 (发送到AD) - 共${frameRateData.length}个数据点，${sensors.length}个传感器`;
+  return composeChartDataResult(
+    summary,
+    option,
+  )
+};
 
-  return {
-    type: "mixed",
-    summary: `📊 相机服务帧率分析 (发送到AD) - 共${frameRateData.length}个数据点，${sensors.length}个传感器`,
-    html: `
-      <div class="analysis-summary">
-        <div class="stats-grid">
-          <div class="stat-item">
-            <span class="stat-label">数据点数量:</span>
-            <span class="stat-value">${frameRateData.length}</span>
-          </div>
-          <div class="stat-item">
-            <span class="stat-label">传感器数量:</span>
-            <span class="stat-value">${sensors.length}</span>
-          </div>
-          <div class="stat-item">
-            <span class="stat-label">时间范围:</span>
-            <span class="stat-value">${formatTimeFromSeconds(timeRange.begin)} - ${formatTimeFromSeconds(timeRange.end)}</span>
-          </div>
-        </div>
-      </div>
-    `,
-    chart: {
-      type: "echarts",
-      option: option,
-    },
-  };
-}
+
 
 function formatTimeFromSeconds(seconds: number): string {
   const hours = Math.floor(seconds / 3600);
@@ -434,4 +360,4 @@ function formatTimeFromSeconds(seconds: number): string {
   return `${hours.toString().padStart(2, "0")}:${minutes.toString().padStart(2, "0")}:${secs.toString().padStart(2, "0")}`;
 }
 
-export default plugin;
+export default CameraFrameRateAnalysisPlugin.getInstance();

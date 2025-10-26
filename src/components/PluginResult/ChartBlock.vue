@@ -6,7 +6,6 @@
 import { ref, watch, onMounted, onUnmounted } from 'vue'
 import * as echarts from 'echarts'
 import type { ChartData } from '@/types/plugin'
-import { ChatDotRound } from '@element-plus/icons-vue/dist/types';
 
 const props = defineProps<{ data: ChartData }>()
 const chartRef = ref(null)
@@ -58,6 +57,8 @@ watch(() => props.data.option, (newOpt) => {
         chartInstance.setOption(newOpt)
     }
 })
+
+const emit = defineEmits(['lineClick']) // not use
 </script>
 <style scoped>
 .chart-block {

@@ -1,4 +1,4 @@
-import type { AnalysisPluginResults,LogItem } from "@/types/plugin";
+import type { AnalysisPluginResult,LogItem } from "@/types/plugin";
 import { IAnalysisPlugin, composeTextDataResult,composeLogDataResult } from "@/types/plugin";;
 
 interface DetectionResult {
@@ -12,8 +12,8 @@ class UpgradeDetectorPlugin extends IAnalysisPlugin {
   async process(
     fileName: string,
     content: string,
-  ): Promise<AnalysisPluginResults[]> {
-    const results: AnalysisPluginResults[] = [];
+  ): Promise<AnalysisPluginResult[]> {
+    const results: AnalysisPluginResult[] = [];
     const lines = content.split("\n");
     const logItems: LogItem[] = [];
     // 统计信息
@@ -27,7 +27,7 @@ class UpgradeDetectorPlugin extends IAnalysisPlugin {
       // 检测升降级原因：包含 '[reason:' 但不包含 '[reason:]'
       if (line.includes("[reason:") && !line.includes("[reason:]") && (line.includes("->DEGRADATION"))) {
         logItems.push({
-          line: lineNumber,
+          lineNumber: lineNumber,
           text: line.trim(),
         });
         errorCount++;
@@ -35,7 +35,7 @@ class UpgradeDetectorPlugin extends IAnalysisPlugin {
       // 检测异常状态：包含 'monitor_message: msg:' 和 '[STAT_ABNORMAL]'
       else if (line.includes("monitor_message: msg:") && line.includes("[STAT_ABNORMAL]")) {
         logItems.push({
-          line: lineNumber,
+          lineNumber: lineNumber,
           text: line.trim(),
         });
         errorCount++;

@@ -3,7 +3,7 @@
         <div class="log-container">
             <div v-for="log in props.data.logs" :key="log.line" class="log-line"
                 @contextmenu.prevent="handleRightClick(log)">
-                <span class="line-number">{{ log.line }}</span>
+                <span class="line-number">{{ log.lineNumber }}</span>
                 <span class="log-text">{{ log.text }}</span>
             </div>
         </div>
@@ -12,7 +12,7 @@
 <script setup lang="ts">
 import type { LogData } from '@/types/plugin'
 const emit = defineEmits<{
-    lineClick: [line: number]
+    lineClick: [lineNumber: number]
 }>()
 
 const props = defineProps<{
@@ -20,8 +20,8 @@ const props = defineProps<{
 }>()
 
 // 处理右键点击事件
-const handleRightClick = (log: { line: number; text: string }) => {
-    emit('lineClick', log.line)
+const handleRightClick = (log: { lineNumber: number; text: string }) => {
+    emit('lineClick', log.lineNumber)
 }
 </script>
 <style scoped>

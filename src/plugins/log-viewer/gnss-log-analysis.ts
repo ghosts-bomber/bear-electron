@@ -1,4 +1,4 @@
-import type { TextData, ChartData, LogData, BlockType, LogItem, AnalysisPluginResults, } from "../../types/plugin";
+import type { TextData, ChartData, LogData, BlockType, LogItem, AnalysisPluginResult, } from "../../types/plugin";
 import { IAnalysisPlugin, composeTextDataResult, composeChartDataResult } from "../../types/plugin";
 
 interface LogCategory {
@@ -80,8 +80,8 @@ class GnssLogAnalysisPlugin extends IAnalysisPlugin {
     private constructor() {
         super("gnss-log-analysis", "GNSS日志分析", "分析GNSS日志生成图表与文本");
     }
-    results: AnalysisPluginResults[] = [];
-    process = async (fileName: string, content: string): Promise<AnalysisPluginResults[]> => {
+    results: AnalysisPluginResult[] = [];
+    process = async (fileName: string, content: string): Promise<AnalysisPluginResult[]> => {
         // 重置单例的结果缓存，避免跨次分析污染
         this.results = [];
         const lines = content.split("\n").filter((line) => line.trim());
