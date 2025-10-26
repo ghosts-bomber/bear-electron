@@ -88,7 +88,7 @@ const addPluginContextMenuActions = () => {
             text: `正在使用 ${plugin.name} 处理内容...`,
           });
 
-          const result = await plugin.process(content, { fileName: props.fileName });
+          const result = await plugin.process(props.fileName, content);
           emit("context-menu-action", {
             action: "plugin-result",
             result: result,
@@ -107,6 +107,18 @@ const addPluginContextMenuActions = () => {
   });
 };
 
+// 跳转到指定行（将行居中并聚焦）
+const goToLine = (line: number) => {
+  if (!editor || typeof line !== 'number') return
+  const ln = Math.max(1, Math.floor(line))
+  editor.revealLineInCenter(ln)
+  editor.setPosition({ lineNumber: ln, column: 1 })
+  editor.focus()
+  // 光标定位到该行首列，并选中整行
+  const endCol = editor?.getModel()?.getLineMaxColumn(ln) ?? 1
+  editor.setSelection(new monaco.Selection(ln, 1, ln, endCol))
+}
+
 // 暴露编辑器实例和方法
 defineExpose({
   getEditor: () => editor,
@@ -115,6 +127,7 @@ defineExpose({
     // 重新添加插件菜单
     addPluginContextMenuActions();
   },
+  goToLine,
 });
 
 watch(

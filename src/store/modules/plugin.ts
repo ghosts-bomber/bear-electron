@@ -1,9 +1,9 @@
 import { defineStore } from "pinia";
-import type { Plugin } from "@/types/plugin";
-import { pluginLoader } from "@/plugins/log-viewer";
+import type { IAnalysisPlugin } from "@/types/plugin";
+import { analysisPluginLoader } from "@/plugins/log-viewer";
 let loaded = false;
 interface PluginState {
-  plugins: Plugin[];
+  plugins: IAnalysisPlugin[];
 }
 
 export const usePluginStore = defineStore("plugin", {
@@ -12,10 +12,10 @@ export const usePluginStore = defineStore("plugin", {
   }),
 
   getters: {
-    getPlugins: (state: PluginState): Plugin[] => state.plugins,
+    getPlugins: (state: PluginState): IAnalysisPlugin[] => state.plugins,
     getPluginById:
       (state: PluginState) =>
-      (id: string): Plugin | undefined =>
+      (id: string): IAnalysisPlugin | undefined =>
         state.plugins.find((plugin) => plugin.id === id),
     getPluginCount: (state: PluginState): number => state.plugins.length,
   },
@@ -23,8 +23,8 @@ export const usePluginStore = defineStore("plugin", {
   actions: {
     loadPlugins() {
       if (!loaded) {
-        pluginLoader.loadAllPlugins();
-        this.plugins = pluginLoader.getAllPlugins();
+        analysisPluginLoader.loadAllPlugins();
+        this.plugins = analysisPluginLoader.getAllPlugins();
         console.log("loadPlugins:" + this.plugins);
       }
       loaded = true;

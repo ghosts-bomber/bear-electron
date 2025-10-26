@@ -1,31 +1,33 @@
-import type { Plugin } from "@/types/plugin";
-import upgradeDetectorPlugin from "./upgrade-detector";
+import type {IAnalysisPlugin} from "@/types/plugin";
+import UpgradeDetectorPlugin from "./upgrade-detector";
 import stackTraceDetectorPlugin from "./stack-trace-detector";
 import cpuUsageAnalyzerPlugin from "./cpu-log-usage-analyzer";
 import memoryUsageAnalyzerPlugin from "./memory-usage-analyzer";
 import gnssLidarWheelAnalysisPlugin from "./gnss-lidar-wheel-analysis";
 import cameraFrameRateAnalysisPlugin from "./camera-frame-rate-analysis";
 import textExportPlugin from "./text-export";
+import GnssLogAnalysisPlugin from "./gnss-log-analysis";
 // 导出所有插件
-export const plugins: Plugin[] = [
-  upgradeDetectorPlugin,
-  stackTraceDetectorPlugin,
-  cpuUsageAnalyzerPlugin,
-  memoryUsageAnalyzerPlugin,
-  gnssLidarWheelAnalysisPlugin,
-  cameraFrameRateAnalysisPlugin,
-  textExportPlugin,
+export const AnalysisPlugins: IAnalysisPlugin[] = [
+  UpgradeDetectorPlugin,
+  // stackTraceDetectorPlugin,
+  // cpuUsageAnalyzerPlugin,
+  // memoryUsageAnalyzerPlugin,
+  // gnssLidarWheelAnalysisPlugin,
+  // cameraFrameRateAnalysisPlugin,
+  // textExportPlugin,
+  GnssLogAnalysisPlugin,
 ];
 
 // 插件加载器
-export class PluginLoader {
-  private static instance: PluginLoader;
-  private loadedPlugins: Map<string, Plugin> = new Map();
-  static getInstance(): PluginLoader {
-    if (!PluginLoader.instance) {
-      PluginLoader.instance = new PluginLoader();
+export class AnalysisPluginLoader {
+  private static instance: AnalysisPluginLoader;
+  private loadedPlugins: Map<string, IAnalysisPlugin> = new Map();
+  static getInstance(): AnalysisPluginLoader {
+    if (!AnalysisPluginLoader.instance) {
+      AnalysisPluginLoader.instance = new AnalysisPluginLoader();
     }
-    return PluginLoader.instance;
+    return AnalysisPluginLoader.instance;
   }
 
   // 加载所有插件
@@ -34,7 +36,7 @@ export class PluginLoader {
       // 清空已加载的插件
       this.loadedPlugins.clear();
       // 加载所有插件
-      for (const plugin of plugins) {
+      for (const plugin of AnalysisPlugins) {
         this.loadedPlugins.set(plugin.id, plugin);
       }
 
@@ -45,12 +47,12 @@ export class PluginLoader {
   }
 
   // 获取单个插件
-  getPlugin(id: string): Plugin | undefined {
+  getPlugin(id: string): IAnalysisPlugin | undefined {
     return this.loadedPlugins.get(id);
   }
 
   // 获取所有插件
-  getAllPlugins(): Plugin[] {
+  getAllPlugins(): IAnalysisPlugin[] {
     return Array.from(this.loadedPlugins.values());
   }
 
@@ -70,7 +72,7 @@ export class PluginLoader {
 }
 
 // 导出插件加载器实例
-export const pluginLoader = PluginLoader.getInstance();
+export const analysisPluginLoader = AnalysisPluginLoader.getInstance();
 
 // 默认导出所有插件
-export default plugins;
+export default AnalysisPlugins;

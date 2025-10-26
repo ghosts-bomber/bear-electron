@@ -44,12 +44,9 @@
           </el-tooltip>
         </div>
       </div>
-      <div v-show="showRightPanel" class="rich-text-container">
-        <RichTextPanel ref="richTextPanelRef" :editor-ref="monacoEditorRef as any" />
-      </div>
       <div v-show="showRightPanel" class="dynamic-display-container">
         <button @click="addDynamicItems">测试动态窗口</button>
-        <DynamicDisplay ref="dynamicDisplayRef" />
+        <DynamicDisplay ref="dynamicDisplayRef" @lineClick="handleLineClick" />
       </div>
     </div>
 
@@ -68,9 +65,8 @@
 import { ref, onMounted, onBeforeUnmount, watch } from "vue";
 import type { Ref } from "vue";
 import MonacoEditor from "@/components/MonacoEditor/index.vue";
-import RichTextPanel from "@/components/RichTextPanel/index.vue";
 import DynamicDisplay from "@/components/DynamicDisplay.vue";
-import type { EditorInstance, Plugin, PluginAction, PluginResult } from "@/types/plugin";
+import type { AnalysisPluginResults } from "@/types/plugin";
 import { ChatDotSquare, Close, Delete } from "@element-plus/icons-vue";
 
 interface Props {
@@ -84,7 +80,6 @@ const emit = defineEmits<{
 }>();
 
 const monacoEditorRef: Ref<InstanceType<typeof MonacoEditor> | null> = ref(null);
-const richTextPanelRef: Ref<InstanceType<typeof RichTextPanel> | null> = ref(null);
 const dynamicDisplayRef: Ref<InstanceType<typeof DynamicDisplay> | null> = ref(null);
 const logViewerRef: Ref<HTMLElement | null> = ref(null);
 const editorContent = ref<string>(props.content);
@@ -122,13 +117,13 @@ const handleContextMenuAction = async (action: {
   action: string;
   text?: string;
   value?: string;
-  result?: string | PluginResult;
   pluginName?: string;
   pluginId?: string;
+  result?:AnalysisPluginResults[];
 }): Promise<void> => {
   // Forward the action to RichTextPanel for display
-  if (richTextPanelRef.value) {
-    richTextPanelRef.value.handleEditorAction(action);
+  if(dynamicDisplayRef.value){
+    dynamicDisplayRef.value.handleEditorAction(action);
   }
 };
 
@@ -138,28 +133,10 @@ const updatePanelWidths = () => {
   // 这里保留函数以备将来扩展
 };
 
-// 防抖函数
-const debounce = (func: Function, wait: number) => {
-  let timeout: ReturnType<typeof setTimeout>;
-  return (...args: any[]) => {
-    clearTimeout(timeout);
-    timeout = setTimeout(() => func.apply(null, args), wait);
-  };
-};
-
-const debouncedUpdatePanelWidths = debounce(updatePanelWidths, 100);
-
 // 切换右侧面板显示/隐藏
 const toggleRightPanel = () => {
   showRightPanel.value = !showRightPanel.value;
   updatePanelWidths();
-
-  // 当面板重新显示时，调整图表大小
-  if (showRightPanel.value && richTextPanelRef.value) {
-    setTimeout(() => {
-      richTextPanelRef.value?.resizeCharts();
-    }, 350); // 等待CSS动画完成
-  }
 };
 
 // 拖拽调整大小
@@ -191,33 +168,32 @@ const handleMouseMove = (e: MouseEvent) => {
   }
 };
 
+function handleLineClick(line: number) {
+  const ln = Math.max(1, Math.floor(line))
+  // 调用 MonacoEditor 暴露的跳转函数
+  monacoEditorRef.value?.goToLine?.(ln)
+}
+
 const stopResize = () => {
   isResizing.value = false;
   document.body.classList.remove("col-resize");
   document.removeEventListener("mousemove", handleMouseMove);
   document.removeEventListener("mouseup", stopResize);
-
-  // 调整图表大小以适应新的容器尺寸
-  if (richTextPanelRef.value) {
-    // 使用setTimeout确保DOM更新完成后再调整图表大小
-    setTimeout(() => {
-      richTextPanelRef.value?.resizeCharts();
-    }, 100);
-  }
 };
 
 // Initialize plugins on component mount
 onMounted(async () => {
   // 初始化面板宽度
   setTimeout(updatePanelWidths, 100);
-  window.addEventListener("resize", debouncedUpdatePanelWidths);
+  // 移除无效的全局 resize 监听，避免在窗口变化时触发多余回调
+  // window.addEventListener("resize", debouncedUpdatePanelWidths);
 });
 
 onBeforeUnmount(() => {
   // 清理事件监听器
   document.removeEventListener("mousemove", handleMouseMove);
   document.removeEventListener("mouseup", stopResize);
-  window.removeEventListener("resize", debouncedUpdatePanelWidths);
+  // window.removeEventListener("resize", debouncedUpdatePanelWidths);
 });
 
 const addDynamicItems = () => {
@@ -335,13 +311,6 @@ const addDynamicItems = () => {
         }
       }
     }
-
-    .rich-text-container {
-      flex: 1;
-      overflow-y: auto;
-      background-color: #fff;
-    }
-
     .dynamic-display-container {
       display: flex;
       flex-direction: column;

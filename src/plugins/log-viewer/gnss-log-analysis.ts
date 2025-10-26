@@ -1,5 +1,5 @@
-import type { TextData, ChartData, LogData, BlockType, LogItem, AnalysisPluginResults, } from "../../type/plugin";
-import { IAnalysisPlugin, composeTextDataResult, composeChartDataResult } from "../../type/plugin";
+import type { TextData, ChartData, LogData, BlockType, LogItem, AnalysisPluginResults, } from "../../types/plugin";
+import { IAnalysisPlugin, composeTextDataResult, composeChartDataResult } from "../../types/plugin";
 
 interface LogCategory {
     orinRecvMpu: string[];
@@ -76,12 +76,14 @@ function secondsToTimestamp(seconds: number): number {
     return today.getTime();
 }
 
-class GnssLogAnalysisPlugin implements IAnalysisPlugin {
-    id: string = "gnss-log-analysis";
-    name: string = "GNSS Log Analysis";
-    description: string = "分析GNSS日志";
+class GnssLogAnalysisPlugin extends IAnalysisPlugin {
+    private constructor() {
+        super("gnss-log-analysis", "GNSS日志分析", "分析GNSS日志生成图表与文本");
+    }
     results: AnalysisPluginResults[] = [];
-    async process(fileName: string, content: string): Promise<AnalysisPluginResults[]> {
+    process = async (fileName: string, content: string): Promise<AnalysisPluginResults[]> => {
+        // 重置单例的结果缓存，避免跨次分析污染
+        this.results = [];
         const lines = content.split("\n").filter((line) => line.trim());
         const timeRange = parseTimeRange(lines);
         if (!timeRange) {
@@ -225,4 +227,4 @@ class GnssLogAnalysisPlugin implements IAnalysisPlugin {
     }
 
 }
-export default GnssLogAnalysisPlugin
+export default GnssLogAnalysisPlugin.getInstance();

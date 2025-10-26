@@ -18,26 +18,51 @@ export interface AnalysisPluginResults {
   type:BlockType;
   data:PluginData;
 }
-export interface IAnalysisPlugin {
-  id: string;
-  name: string;
-  description: string;
-  process: (
-    fileName:string,
+export abstract class IAnalysisPlugin {
+  readonly id: string;
+  readonly name: string;
+  readonly description: string;
+
+  protected constructor(id: string, name: string, description: string) {
+    this.id = id;
+    this.name = name;
+    this.description = description;
+  }
+
+  abstract process(
+    fileName: string,
     content: string,
-  ) => Promise<AnalysisPluginResults[]>;
+  ): Promise<AnalysisPluginResults[]>;
+
+  // 基类维护所有子类的单例实例，按构造函数区分
+  private static _instances = new WeakMap<Function, IAnalysisPlugin>();
+
+  // 通过构造函数获取/创建对应的单例实例
+  static getInstance<T extends IAnalysisPlugin>(
+    this: Function,
+    ...args: any[]
+  ): T {
+    const ctor = this as unknown as new (...args: any[]) => T;
+    let instance = IAnalysisPlugin._instances.get(ctor) as T | undefined;
+    if (!instance) {
+      instance = new ctor(...args);
+      IAnalysisPlugin._instances.set(ctor, instance as unknown as IAnalysisPlugin);
+    }
+    return instance!;
+  }
 }
+
 export const composeTextDataResult = (text: string): AnalysisPluginResults => ({
   type: "text",
   data: { text },
 })
-export const composeLogDataResult = (logs: LogData): AnalysisPluginResults => ({
+export const composeLogDataResult = (logs: LogItem[]): AnalysisPluginResults => ({
   type: "log",
-  data: logs,
+  data: { logs },
 })
-export const composeChartDataResult = (description:string,option: any): AnalysisPluginResults => ({
+export const composeChartDataResult = (title:string,option: any): AnalysisPluginResults => ({
   type: "chart",
-  data: { description, option },
+  data: { title, option },
 })
 
 

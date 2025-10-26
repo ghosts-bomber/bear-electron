@@ -1,12 +1,8 @@
 <template>
     <div class="log-block">
         <div class="log-container">
-            <div 
-                v-for="log in props.data.logs" 
-                :key="log.line"
-                class="log-line"
-                @contextmenu.prevent="handleRightClick(log)"
-            >
+            <div v-for="log in props.data.logs" :key="log.line" class="log-line"
+                @contextmenu.prevent="handleRightClick(log)">
                 <span class="line-number">{{ log.line }}</span>
                 <span class="log-text">{{ log.text }}</span>
             </div>
@@ -14,7 +10,10 @@
     </div>
 </template>
 <script setup lang="ts">
-import type { LogData } from '@/type/plugin'
+import type { LogData } from '@/types/plugin'
+const emit = defineEmits<{
+    lineClick: [line: number]
+}>()
 
 const props = defineProps<{
     data: LogData
@@ -22,8 +21,7 @@ const props = defineProps<{
 
 // 处理右键点击事件
 const handleRightClick = (log: { line: number; text: string }) => {
-    console.log(`右键点击日志行号: ${log.line}`)
-    console.log(`日志内容: ${log.text}`)
+    emit('lineClick', log.line)
 }
 </script>
 <style scoped>
@@ -33,8 +31,11 @@ const handleRightClick = (log: { line: number; text: string }) => {
     border-radius: 5px;
     margin-bottom: 10px;
     max-height: 400px;
-    overflow: auto;
+    overflow-x: auto;
+    overflow-y: auto;
     background-color: #f8f9fa;
+    /* 隔离布局与绘制，降低窗口变化时的重排范围 */
+    contain: layout paint;
 }
 
 .log-container {
@@ -47,9 +48,11 @@ const handleRightClick = (log: { line: number; text: string }) => {
     display: flex;
     align-items: flex-start;
     padding: 2px 0;
-    border-bottom: 1px solid #e9ecef;
     cursor: pointer;
     transition: background-color 0.2s ease;
+    min-width: max-content;
+    /* 子行也隔离，避免长文本导致整块重新布局 */
+    contain: layout paint;
 }
 
 .log-line:hover {
@@ -74,9 +77,10 @@ const handleRightClick = (log: { line: number; text: string }) => {
 }
 
 .log-text {
-    flex: 1;
-    word-break: break-all;
-    white-space: pre-wrap;
+    flex: 0 0 auto;
+    white-space: pre;
+    word-break: normal;
+    overflow-wrap: normal;
     color: #212529;
 }
 </style>
