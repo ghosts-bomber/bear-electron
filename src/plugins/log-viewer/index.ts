@@ -3,7 +3,7 @@ import UpgradeDetectorPlugin from "./upgrade-detector";
 import StackTraceDetectorPlugin from "./stack-trace-detector";
 import CpuUsageAnalyzerPlugin from "./cpu-log-usage-analyzer";
 import MemoryUsageAnalyzerPlugin from "./memory-usage-analyzer";
-import gnssLidarWheelAnalysisPlugin from "./gnss-lidar-wheel-analysis";
+import LidarWheelAnalysisPlugin from "./lidar-wheel-analysis";
 import CameraFrameRateAnalysisPlugin from "./camera-frame-rate-analysis";
 import textExportPlugin from "./text-export";
 import GnssLogAnalysisPlugin from "./gnss-log-analysis";
@@ -13,7 +13,7 @@ export const AnalysisPlugins: IAnalysisPlugin[] = [
   StackTraceDetectorPlugin,
   CpuUsageAnalyzerPlugin,
   MemoryUsageAnalyzerPlugin,
-  // gnssLidarWheelAnalysisPlugin,
+  LidarWheelAnalysisPlugin,
   CameraFrameRateAnalysisPlugin,
   // textExportPlugin,
   GnssLogAnalysisPlugin,

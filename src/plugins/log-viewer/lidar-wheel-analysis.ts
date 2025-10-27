@@ -1,13 +1,11 @@
-import type { Plugin, PluginResult } from "@/types/plugin";
+import type { TextData, ChartData, LogData, BlockType, LogItem, AnalysisPluginResult, } from "@/types/plugin";
+import { IAnalysisPlugin, composeTextDataResult, composeChartDataResult } from "@/types/plugin";
 
 interface LogCategory {
-  orinRecvMpu: string[];
   lidarFps: string[];
   lidarNanRatio: string[];
-  gnssImu: string[];
   dynamicMapLoad: string[];
   wheelSpeed: string[];
-  bestGnssPos: string[];
   lidarPacket: string[];
 }
 
@@ -24,48 +22,39 @@ interface WheelSpeed {
   rr: number;
   measurement_time: number;
 }
-const plugin: Plugin = {
-  id: "gnss-lidar-wheel-analysis",
-  name: "GNSS雷达轮速分析",
-  description: "分析GNSS、雷达频率、轮速相关的日志数据并生成可视化图表",
-  async process(content: string): Promise<PluginResult | PluginResult[]> {
-    try {
-      const lines = content.split("\n").filter((line) => line.trim());
+class LidarWheelAnalysisPlugin extends IAnalysisPlugin {
+  private constructor() {
+    super("lidar-wheel-analysis", "雷达轮速分析", "分析雷达轮速相关的日志数据并生成可视化图表");
+  }
+  async process(fileName: string, content: string): Promise<AnalysisPluginResult[]> {
+    const results: AnalysisPluginResult[] = [];
 
-      if (lines.length === 0) {
-        return {
-          type: "html",
-          summary: "❌ 未找到有效的日志数据",
-          html: '<div class="no-data">请提供包含GNSS、雷达或轮速数据的日志文件</div>',
-        };
-      }
-
-      // 解析时间范围
-      const timeRange = parseTimeRange(lines);
-      if (!timeRange) {
-        return {
-          type: "html",
-          summary: "❌ 无法解析日志时间范围",
-          html: '<div class="error">日志格式不正确，无法解析时间信息</div>',
-        };
-      }
-
-      // 分类日志
-      const categorizedLogs = categorizeLogs(lines);
-
-      // 生成分析结果
-      const results = generateAnalysis(categorizedLogs, timeRange);
-
+    const lines = content.split("\n").filter((line) => line.trim() !== "");
+    if (lines.length === 0) {
+      results.push(composeTextDataResult("❌ 未找到有效的日志数据,请提供包含GNSS、雷达或轮速数据的日志文件"));
       return results;
-    } catch (error) {
-      console.error("GNSS雷达轮速分析出错:", error);
-      return {
-        type: "html",
-        summary: "❌ 分析过程中出现错误",
-        html: `<div class="error">错误: ${error instanceof Error ? error.message : String(error)}</div>`,
-      };
     }
-  },
+
+    // 解析时间范围
+    const timeRange = parseTimeRange(lines);
+    if (!timeRange) {
+      results.push(composeTextDataResult("❌ 无法解析日志时间范围,日志格式不正确，无法解析时间信息"));
+      return results;
+    }
+
+    // 分类日志
+    const categorizedLogs = categorizeLogs(lines);
+    // 雷达FPS分析
+    if (categorizedLogs.lidarFps.length > 0) {
+      results.push(...analyzeLidarFps(categorizedLogs.lidarFps, timeRange));
+    }
+
+    // 轮速分析
+    if (categorizedLogs.wheelSpeed.length > 0) {
+      results.push(analyzeWheelSpeed(categorizedLogs.wheelSpeed, timeRange));
+    }
+    return results;
+  }
 };
 
 function parseTimeRange(lines: string[]): TimeRange | null {
@@ -127,60 +116,29 @@ function secondsToTimestamp(seconds: number): number {
 
 function categorizeLogs(lines: string[]): LogCategory {
   const categories: LogCategory = {
-    orinRecvMpu: [],
     lidarFps: [],
     lidarNanRatio: [],
-    gnssImu: [],
     dynamicMapLoad: [],
     wheelSpeed: [],
-    bestGnssPos: [],
     lidarPacket: [],
   };
 
   for (const line of lines) {
-    if (line.includes("raw_stream") && line.includes("read data")) {
-      categories.orinRecvMpu.push(line);
-    } else if (line.includes("publisher") && line.includes("pointsize")) {
+    if (line.includes("publisher") && line.includes("pointsize")) {
       categories.lidarFps.push(line);
       categories.lidarNanRatio.push(line);
-    } else if (line.includes("novatel_ros_parser")) {
-      categories.gnssImu.push(line);
     } else if (line.includes("LoadDynamicMap______________________________")) {
       categories.dynamicMapLoad.push(line);
     } else if (line.includes("wheel_speed")) {
       categories.wheelSpeed.push(line);
-    } else if (line.includes("bestgnsspos measurement at") && line.includes("lon_lat_hgt_std")) {
-      categories.bestGnssPos.push(line);
     } else if (line.includes("packet receive:")) {
       categories.lidarPacket.push(line);
     }
   }
-
   return categories;
 }
 
-function generateAnalysis(logs: LogCategory, timeRange: TimeRange): PluginResult[] {
-  const results: PluginResult[] = [];
-
-  // 雷达FPS分析
-  if (logs.lidarFps.length > 0) {
-    results.push(...analyzeLidarFps(logs.lidarFps, timeRange));
-  }
-
-  // 轮速分析
-  if (logs.wheelSpeed.length > 0) {
-    results.push(analyzeWheelSpeed(logs.wheelSpeed, timeRange));
-  }
-
-  // Orin接收MPU数据分析
-  if (logs.orinRecvMpu.length > 0) {
-    results.push(analyzeOrinRecvMpu(logs.orinRecvMpu, timeRange));
-  }
-
-  return results;
-}
-
-function analyzeLidarFps(lines: string[], timeRange: TimeRange): PluginResult[] {
+function analyzeLidarFps(lines: string[], timeRange: TimeRange): AnalysisPluginResult[] {
   const lidarData: Array<{
     systemTime: string;
     lidarIndex: number;
@@ -190,7 +148,7 @@ function analyzeLidarFps(lines: string[], timeRange: TimeRange): PluginResult[] 
     nanRatio: number;
     timeDiff: number; // 时间戳差值，单位：ms
   }> = [];
-
+  const results: AnalysisPluginResult[] = [];
   // 更精确的正则表达式来匹配完整的日志格式
   const logRegex =
     /(\d{2}:\d{2}:\d{2}\.\d{6}).*?publish (\d+) pointcloud.*?system time is ([\d\.]+).*?timestamp is ([\d\.]+).*?pointsize is (\d+).*?nan ratio is ([\d\.]+)/;
@@ -221,12 +179,10 @@ function analyzeLidarFps(lines: string[], timeRange: TimeRange): PluginResult[] 
   }
 
   if (lidarData.length === 0) {
-    return [
-      {
-        type: "html",
-        html: '<div class="no-data">📡 雷达数据分析：未找到匹配的日志行</div>',
-      },
-    ];
+    results.push(composeTextDataResult(
+      '📡 雷达数据分析：未找到匹配的日志行</div>',
+    ));
+    return results;
   }
 
   // 按lidar编号分组数据
@@ -240,8 +196,6 @@ function analyzeLidarFps(lines: string[], timeRange: TimeRange): PluginResult[] 
       group.push(data);
     }
   });
-
-  const results: PluginResult[] = [];
 
   // 第一个图表：点云数和NAN比例（按lidar编号分类）
   const pointSizeSeries: any[] = [];
@@ -370,20 +324,7 @@ function analyzeLidarFps(lines: string[], timeRange: TimeRange): PluginResult[] 
     ],
   };
 
-  results.push({
-    type: "mixed",
-    summary: "雷达点云数和NAN比例分析",
-    html: `<div class="stats-grid">
-      <div class="stat-item">
-        <div class="stat-label">数据点数量</div>
-        <div class="stat-value">${lidarData.length}</div>
-      </div>
-    </div>`,
-    chart: {
-      type: "echarts",
-      option: chart1Option,
-    },
-  });
+  results.push(composeChartDataResult("雷达点云数和NAN比例分析", chart1Option));
 
   // 第二个图表：时间戳差值分析
   const timeDiffSeries: any[] = [];
@@ -483,30 +424,11 @@ function analyzeLidarFps(lines: string[], timeRange: TimeRange): PluginResult[] 
       { type: "inside", xAxisIndex: 0 },
     ],
   };
-
-  results.push({
-    type: "mixed",
-    summary: "时间戳差值分析",
-    html: `<div class="stats-grid">
-      <div class="stat-item">
-        <div class="stat-label">平均时间差值</div>
-        <div class="stat-value">${(lidarData.reduce((sum, d) => sum + d.timeDiff, 0) / lidarData.length).toFixed(3)} ms</div>
-      </div>
-      <div class="stat-item">
-        <div class="stat-label">最大时间差值</div>
-        <div class="stat-value">${Math.max(...lidarData.map((d) => d.timeDiff)).toFixed(3)} ms</div>
-      </div>
-    </div>`,
-    chart: {
-      type: "echarts",
-      option: chart2Option,
-    },
-  });
-
+  results.push(composeChartDataResult("时间戳差值分析", chart2Option));
   return results;
 }
 
-function analyzeWheelSpeed(lines: string[], timeRange: TimeRange): PluginResult {
+function analyzeWheelSpeed(lines: string[], timeRange: TimeRange): AnalysisPluginResult {
   const wheelSpeedData: WheelSpeed[] = [];
 
   for (const line of lines) {
@@ -540,11 +462,9 @@ function analyzeWheelSpeed(lines: string[], timeRange: TimeRange): PluginResult 
   }
 
   if (wheelSpeedData.length === 0) {
-    return {
-      type: "html",
-      summary: "",
-      html: '<div class="no-data">🚗 轮速数据分析:未找到轮速数据</div>',
-    };
+    return composeTextDataResult(
+      `轮速数据分析:未找到轮速数据`,
+    );
   }
 
   // 直接使用所有数据点，以时间为x轴值，转换为时间戳，但保留原始时间字符串
@@ -725,190 +645,9 @@ function analyzeWheelSpeed(lines: string[], timeRange: TimeRange): PluginResult 
       },
     ],
   };
-
-  const html = `
-    <div class="stats-grid">
-      <div class="stat-item">
-        <div class="stat-label">数据点数量</div>
-        <div class="stat-value">${wheelSpeedData.length}</div>
-      </div>
-    </div>
-  `;
-  return {
-    type: "mixed",
-    summary: "轮速数据分析",
-    html,
-    chart: {
-      type: "echarts",
-      option: chartOption,
-    },
-  };
+  return composeChartDataResult("轮速数据分析",chartOption);
 }
 
-function analyzeOrinRecvMpu(lines: string[], timeRange: TimeRange): PluginResult {
-  // 存储每秒的数据量汇总
-  const dataBySecond = new Map<string, number>();
-
-  // 正则表达式匹配日志格式：I[250613 16:14:24.967221][2684][raw_stream.cpp:493]read data length: 32/84
-  const logRegex = /(\d{2}:\d{2}:\d{2})\.\d+.*?read data length: (\d+)\/\d+/;
-
-  for (const line of lines) {
-    const match = line.match(logRegex);
-    if (!match) continue;
-
-    const timeSecond = match[1]; // 提取到秒级的时间，如 "16:14:24"
-    const dataLength = parseInt(match[2]); // 提取数据长度，如 32
-
-    // 按秒汇总数据量
-    const currentValue = dataBySecond.get(timeSecond) || 0;
-    dataBySecond.set(timeSecond, currentValue + dataLength);
-  }
-
-  if (dataBySecond.size === 0) {
-    return {
-      type: "html",
-      html: '<div class="no-data">🖥️ Orin接收MPU数据分析：未找到匹配的日志行</div>',
-    };
-  }
-
-  // 生成完整的秒级时间序列（基于timeRange）
-  const timeLabels: string[] = [];
-  const chartData: Array<{ value: [number, number]; originalTime: string }> = [];
-
-  for (let time = timeRange.begin; time <= timeRange.end; time++) {
-    const timeStr = formatTimeFromSeconds(time);
-    timeLabels.push(timeStr);
-
-    const dataAmount = dataBySecond.get(timeStr) || 0;
-    chartData.push({
-      value: [secondsToTimestamp(time), dataAmount],
-      originalTime: timeStr,
-    });
-  }
-
-  // 计算统计信息
-  const totalData = Array.from(dataBySecond.values()).reduce((sum, val) => sum + val, 0);
-  const nonZeroSeconds = Array.from(dataBySecond.values()).filter((val) => val > 0);
-  const avgDataPerSecond =
-    nonZeroSeconds.length > 0 ? Math.round(totalData / nonZeroSeconds.length) : 0;
-  const maxDataPerSecond = Math.max(...Array.from(dataBySecond.values()));
-  const activeSeconds = nonZeroSeconds.length;
-
-  // 生成图表配置
-  const chartOption = {
-    title: {
-      text: "Orin每秒接收MPU数据量统计",
-      left: "center",
-      textStyle: { fontSize: 14, fontWeight: "bold" },
-    },
-    tooltip: {
-      trigger: "axis",
-      axisPointer: { type: "cross", animation: false },
-      formatter: function (params: any) {
-        const data = params[0];
-        const originalTime = data.data && data.data.originalTime ? data.data.originalTime : "";
-        return `<div style="font-weight: bold; color: #333; margin-bottom: 8px;">
-          🕒 时间: ${originalTime}
-        </div>
-        <div style="margin: 4px 0;">
-          📊 该秒总数据量: <span style="font-weight: bold;">${data.value[1]} bytes</span>
-        </div>
-        <div style="margin: 4px 0; font-size: 12px; color: #666;">
-          💡 该秒内所有读取操作的数据量总和
-        </div>`;
-      },
-    },
-    grid: { left: "8%", right: "4%", bottom: "20%", top: "15%", containLabel: true },
-    xAxis: {
-      type: "time",
-      axisLabel: {
-        rotate: 45,
-        fontSize: 9,
-        formatter: (value: number) => {
-          const date = new Date(value);
-          return date.toTimeString().split(" ")[0]; // 显示 HH:MM:SS
-        },
-      },
-      axisTick: { alignWithLabel: true },
-      min: secondsToTimestamp(timeRange.begin),
-      max: secondsToTimestamp(timeRange.end),
-    },
-    yAxis: {
-      type: "value",
-      name: "数据量 (bytes/秒)",
-      axisLabel: { formatter: "{value}" },
-      splitLine: { lineStyle: { type: "dashed" } },
-    },
-    series: [
-      {
-        name: "每秒数据量",
-        type: "line",
-        data: chartData,
-        itemStyle: {
-          color: "#5470C6",
-          borderColor: "#ffffff",
-          borderWidth: 1,
-        },
-        lineStyle: {
-          color: "#5470C6",
-          width: 2,
-        },
-        symbol: "circle",
-        symbolSize: 4,
-        smooth: false,
-        connectNulls: false,
-        areaStyle: {
-          color: {
-            type: "linear",
-            x: 0,
-            y: 0,
-            x2: 0,
-            y2: 1,
-            colorStops: [
-              { offset: 0, color: "rgba(84, 112, 198, 0.3)" },
-              { offset: 1, color: "rgba(84, 112, 198, 0.1)" },
-            ],
-          },
-        },
-      },
-    ],
-    dataZoom: [
-      { type: "slider", xAxisIndex: 0, start: 0, end: 100, height: 20, bottom: 10 },
-      { type: "inside", xAxisIndex: 0 },
-    ],
-  };
-
-  const html = `
-    <div class="stats-grid">
-      <div class="stat-item">
-        <div class="stat-label">活跃秒数</div>
-        <div class="stat-value">${activeSeconds}</div>
-      </div>
-      <div class="stat-item">
-        <div class="stat-label">总数据量</div>
-        <div class="stat-value">${totalData.toLocaleString()} bytes</div>
-      </div>
-      <div class="stat-item">
-        <div class="stat-label">平均每秒</div>
-        <div class="stat-value">${avgDataPerSecond.toLocaleString()} bytes</div>
-      </div>
-      <div class="stat-item">
-        <div class="stat-label">最大每秒</div>
-        <div class="stat-value">${maxDataPerSecond.toLocaleString()} bytes</div>
-      </div>
-    </div>
-  `;
-
-  return {
-    type: "mixed",
-    summary: "Orin每秒接收MPU数据分析",
-    html: html,
-    chart: {
-      type: "echarts",
-      option: chartOption,
-    },
-  };
-}
 
 // 添加辅助函数：将秒数转换为时分秒字符串
 function formatTimeFromSeconds(seconds: number): string {
@@ -922,4 +661,4 @@ function formatTimeFromSeconds(seconds: number): string {
   return `${hours}:${mins}:${secs}`;
 }
 
-export default plugin;
+export default LidarWheelAnalysisPlugin.getInstance();
