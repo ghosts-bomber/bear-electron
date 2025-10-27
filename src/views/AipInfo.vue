@@ -654,6 +654,8 @@ const getRowClassName = ({ row }: { row: LogFileInfo }): string => {
 .log-tabs :deep(.el-tabs__nav-wrap) {
   background: transparent;
   border-bottom: none;
+  overflow-x: auto;
+  overflow-y: hidden;
 }
 
 .log-tabs :deep(.el-tabs__content) {

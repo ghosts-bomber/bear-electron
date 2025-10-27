@@ -76,8 +76,18 @@ export const openJiraFileHandler = async (_event: any, jira_id: string, file_nam
     }
     // TODO 实现已经解压后的文件直接打开
     // 解压文件
-    const extractFiles = await extractFile(filePath, jiraDir);
-    console.log(`解压文件: ${extractFiles}`);
+    const extractFiles:string[] = []
+    try {
+      extractFiles.push(...await extractFile(filePath, jiraDir));
+      console.log(`解压文件: ${extractFiles}`);
+    } catch (error) {
+      console.error('解压文件错误:', error);
+      console.log(`重新下载并解压文件: ${filePath}`);
+      // 重新下载文件
+      await downloadFile(file_url, filePath);
+      // 重新解压文件
+      extractFiles.push(...await extractFile(filePath, jiraDir));
+    }
     // 读取目标文件内容
     const extractFileExists = await fs.promises.access(extractFiles[0]).then(() => true).catch(() => false);
 

@@ -25,7 +25,7 @@ class UpgradeDetectorPlugin extends IAnalysisPlugin {
       const lineNumber = i + 1;
 
       // 检测升降级原因：包含 '[reason:' 但不包含 '[reason:]'
-      if (line.includes("[reason:") && !line.includes("[reason:]") && (line.includes("->DEGRADATION"))) {
+      if (line.includes("[reason:") && !line.includes("[reason:]") && (line.includes("->DEGRADATION")) || line.includes("->ESCALATION")) {
         logItems.push({
           lineNumber: lineNumber,
           text: line.trim(),
@@ -33,7 +33,7 @@ class UpgradeDetectorPlugin extends IAnalysisPlugin {
         errorCount++;
       }
       // 检测异常状态：包含 'monitor_message: msg:' 和 '[STAT_ABNORMAL]'
-      else if (line.includes("monitor_message: msg:") && line.includes("[STAT_ABNORMAL]")) {
+      else if (line.includes("monitor_message: msg:") && (line.includes("[STAT_ABNORMAL]")|| line.includes("STAT_HAVE_TO_TAKEOVER"))) {
         logItems.push({
           lineNumber: lineNumber,
           text: line.trim(),
