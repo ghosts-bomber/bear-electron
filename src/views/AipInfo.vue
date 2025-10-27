@@ -29,14 +29,8 @@
         </el-form-item>
       </el-form>
 
-      <el-table
-        :data="aipDataInfo.logFiles"
-        stripe
-        style="width: 100%"
-        :row-class-name="getRowClassName"
-        @row-dblclick="logDbClickedHandle"
-        @row-contextmenu="showRowContextMenu"
-      >
+      <el-table :data="aipDataInfo.logFiles" stripe style="width: 100%;height: 100%;" :row-class-name="getRowClassName"
+        @row-dblclick="logDbClickedHandle" @row-contextmenu="showRowContextMenu">
         <el-table-column label="文件名" min-width="200" show-overflow-tooltip>
           <template #default="scope">
             <span>
@@ -47,7 +41,7 @@
         <el-table-column property="filesize" label="大小" width="120" />
       </el-table>
 
-      <el-table :data="aipDataInfo.record3dayLinks" style="width: 100%">
+      <el-table :data="aipDataInfo.record3dayLinks" style="width: 100%; max-height: 300px; overflow: auto;">
         <el-table-column label="record url">
           <template #default="scope">
             {{ scope.row }}
@@ -60,25 +54,22 @@
       <!-- 空状态显示 -->
       <div v-if="openTabs.length === 0" class="empty-state">
         <div class="empty-content">
-          <el-icon size="48" color="#c0c4cc"><Document /></el-icon>
+          <el-icon size="48" color="#c0c4cc">
+            <Document />
+          </el-icon>
           <p>双击左侧日志文件以打开查看</p>
         </div>
       </div>
 
       <!-- Tab页面 -->
-      <el-tabs
-        v-else
-        v-model="activeTab"
-        type="card"
-        closable
-        class="log-tabs"
-        @tab-remove="removeTab"
-        @tab-click="handleTabClick"
-      >
+      <el-tabs v-else v-model="activeTab" type="card" closable class="log-tabs" @tab-remove="removeTab"
+        @tab-click="handleTabClick">
         <el-tab-pane v-for="tab in openTabs" :key="tab.id" :name="tab.id" :closable="true">
           <template #label>
             <div class="tab-label-container" @contextmenu.prevent="showTabContextMenu($event, tab)">
-              <el-icon class="tab-icon" size="14"><DocumentCopy /></el-icon>
+              <el-icon class="tab-icon" size="14">
+                <DocumentCopy />
+              </el-icon>
               <el-tooltip :content="tab.fullName" placement="top" :disabled="tab.name.length <= 25">
                 <span class="tab-label">{{ tab.name }}</span>
               </el-tooltip>
@@ -90,15 +81,10 @@
         </el-tab-pane>
       </el-tabs>
     </div>
-    
+
     <!-- 右键菜单组件 -->
-    <LogTableContextMenu
-      :visible="contextMenuVisible"
-      :position="contextMenuPosition"
-      :log-file="selectedLogFile"
-      :jira-issue-key="aipInfo.jiraIssueKey || ''"
-      @close="closeContextMenu"
-    />
+    <LogTableContextMenu :visible="contextMenuVisible" :position="contextMenuPosition" :log-file="selectedLogFile"
+      :jira-issue-key="aipInfo.jiraIssueKey || ''" @close="closeContextMenu" />
   </div>
 </template>
 
@@ -181,7 +167,7 @@ PTApi.aipDataInfo(aipInfo.id)
       aipDataInfo.logFiles = response.logFiles || [];
       aipDataInfo.record3dayLinks = response.record3dayLinks || [];
       aipDataInfo.ossName = response.ossName;
-      for(let logFile of aipDataInfo.logFiles){
+      for (let logFile of aipDataInfo.logFiles) {
         logFile.containErrorTime = isTimeInRange(logFile.name);
       }
     }
@@ -293,8 +279,8 @@ const showTabContextMenu = (event: MouseEvent, tab: LogTab) => {
 const logDbClickedHandle = async (row: any, column: any, event: Event) => {
   let logFile = row as LogFileInfo;
   const existingTab = openTabs.value.find((tab) => tab.logFile.objName === logFile.objName);
-  if(existingTab){
-     // 如果已经打开，切换到该tab并更新内容
+  if (existingTab) {
+    // 如果已经打开，切换到该tab并更新内容
     activeTab.value = existingTab.id;
     return
   }
@@ -320,26 +306,26 @@ const logDbClickedHandle = async (row: any, column: any, event: Event) => {
     const url_match = url.match(/https?:\/\/[^/]+(\/.+)/);
     if (url_match !== null) {
       console.log("url_match:", url_match);
-        try {
-          //if (!logFile.cut) {
-          const { success, content, message } = await (window as any).electronAPI.openJiraFile(
-            aipInfo.jiraIssueKey,
-            logFile.name,
-            url_match[0]
-          );
-          if (!success) {
-            throw new Error(message);
-          }
-          // 添加到Tab中
-          addTab(logFile, content);
-          // 关闭加载提示，显示成功消息
-          loadingMessage.close();
-          ElMessage.success(`${logFile.name} 加载完成`);
-        } catch (error) {
-          console.error("Error processing tar.gz file:", error);
-          loadingMessage.close();
-          ElMessage.error(`处理文件 ${logFile.name} 时出错: ${error}`);
+      try {
+        //if (!logFile.cut) {
+        const { success, content, message } = await (window as any).electronAPI.openJiraFile(
+          aipInfo.jiraIssueKey,
+          logFile.name,
+          url_match[0]
+        );
+        if (!success) {
+          throw new Error(message);
         }
+        // 添加到Tab中
+        addTab(logFile, content);
+        // 关闭加载提示，显示成功消息
+        loadingMessage.close();
+        ElMessage.success(`${logFile.name} 加载完成`);
+      } catch (error) {
+        console.error("Error processing tar.gz file:", error);
+        loadingMessage.close();
+        ElMessage.error(`处理文件 ${logFile.name} 时出错: ${error}`);
+      }
     } else {
       console.log("download file:can't find match params,url:", url);
       loadingMessage.close();
@@ -352,14 +338,14 @@ const logDbClickedHandle = async (row: any, column: any, event: Event) => {
   }
 };
 const showRowContextMenu = (row: LogFileInfo, column: any, event: MouseEvent) => {
-  event.preventDefault(); 
+  event.preventDefault();
   // 设置选中的日志文件
   selectedLogFile.value = row;
   // 设置菜单位置
   contextMenuPosition.value = {
     x: event.clientX,
     y: event.clientY
-  }; 
+  };
   // 显示菜单
   contextMenuVisible.value = true;
 };
@@ -372,6 +358,17 @@ const closeContextMenu = () => {
 // 添加左右面板宽度控制相关的代码
 const leftPanelWidth = ref(0);
 const isResizing = ref(false);
+
+// 滚轮事件处理函数
+const handleWheel = (e: WheelEvent) => {
+  const tabsContainer = document.querySelector('.log-tabs :deep(.el-tabs__nav-wrap)') as HTMLElement;
+  if (tabsContainer) {
+    // 阻止默认的垂直滚动行为
+    e.preventDefault();
+    // 横向滚动，滚轮deltaY控制滚动速度
+    tabsContainer.scrollLeft += e.deltaY * 2;
+  }
+};
 
 // 键盘快捷键处理
 const handleKeydown = (e: KeyboardEvent) => {
@@ -392,6 +389,12 @@ onMounted(() => {
   // 添加键盘事件监听
   document.addEventListener("keydown", handleKeydown);
 
+  // 添加滚轮事件监听
+  // const tabsContainer = document.querySelector('.log-tabs :deep(.el-tabs__nav-wrap)');
+  // if (tabsContainer) {
+  //   tabsContainer.addEventListener('wheel', handleWheel, { passive: false });
+  // }
+
   document.title = props.code;
 });
 
@@ -405,6 +408,11 @@ watch(
 // 清理事件监听器
 onBeforeUnmount(() => {
   document.removeEventListener("keydown", handleKeydown);
+  // 移除滚轮事件监听
+  // const tabsContainer = document.querySelector('.log-tabs :deep(.el-tabs__nav-wrap)');
+  // if (tabsContainer) {
+  //   tabsContainer.removeEventListener('wheel', handleWheel);
+  // }
 });
 
 // 处理拖动开始
@@ -656,6 +664,11 @@ const getRowClassName = ({ row }: { row: LogFileInfo }): string => {
   border-bottom: none;
   overflow-x: auto;
   overflow-y: hidden;
+  /* 启用平滑滚动 */
+  scroll-behavior: smooth;
+  /* 隐藏滚动条但保持滚动功能 */
+  scrollbar-width: thin;
+  scrollbar-color: #cbd5e1 transparent;
 }
 
 .log-tabs :deep(.el-tabs__content) {
@@ -885,7 +898,7 @@ const getRowClassName = ({ row }: { row: LogFileInfo }): string => {
 }
 
 /* 响应式设计 */
-@media (width <= 1200px) {
+@media (width <=1200px) {
   .aip-info-container {
     flex-direction: column;
     height: auto;
@@ -917,7 +930,7 @@ const getRowClassName = ({ row }: { row: LogFileInfo }): string => {
   }
 }
 
-@media (width <= 768px) {
+@media (width <=768px) {
   .aip-info-container {
     gap: 10px;
     padding: 10px;
