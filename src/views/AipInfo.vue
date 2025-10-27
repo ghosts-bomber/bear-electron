@@ -62,7 +62,7 @@
       </div>
 
       <!-- Tab页面 -->
-      <el-tabs v-else v-model="activeTab" type="card" closable class="log-tabs" @tab-remove="removeTab"
+      <el-tabs v-else v-model="activeTab" type="card" closable class="log-tabs" ref="tabsRef" @tab-remove="removeTab"
         @tab-click="handleTabClick">
         <el-tab-pane v-for="tab in openTabs" :key="tab.id" :name="tab.id" :closable="true">
           <template #label>
@@ -97,6 +97,7 @@ import { Document, DocumentCopy } from "@element-plus/icons-vue";
 import type { AxiosResponse } from "axios";
 import { ElMessage, ElMessageBox } from "element-plus";
 import { computed, onBeforeUnmount, onMounted, reactive, ref, watch } from "vue";
+import { nextTick } from 'vue';
 interface AipInfo {
   carCyberRtVersion?: string;
   carId?: string;
@@ -193,6 +194,8 @@ const dvLink = computed(() => {
 });
 
 // Tab相关状态
+const tabsRef = ref<any>(null)
+let tabsHeaderEl: HTMLElement | null = null
 const openTabs = ref<LogTab[]>([]);
 const activeTab = ref<string>("");
 
@@ -239,6 +242,19 @@ const removeTab = (targetName: string | number) => {
   }
 };
 
+const scrollActiveTabIntoView = () => {
+  const root = (tabsRef.value?.$el ?? null) as HTMLElement | null
+  if (!root) return
+  const wrap = root.querySelector('.el-tabs__nav-wrap') as HTMLElement | null
+  const nav = root.querySelector('.el-tabs__nav') as HTMLElement | null
+  if (!wrap || !nav) return
+  const active = nav.querySelector('.el-tabs__item.is-active') as HTMLElement | null
+  if (!active) return
+
+  const targetLeft = active.offsetLeft - (wrap.clientWidth - active.offsetWidth) / 2
+  wrap.scrollTo({ left: Math.max(0, targetLeft), behavior: 'smooth' })
+}
+
 // 添加新Tab
 const addTab = (logFile: LogFileInfo, content: string) => {
   // 创建新tab
@@ -252,6 +268,11 @@ const addTab = (logFile: LogFileInfo, content: string) => {
 
   openTabs.value.push(newTab);
   activeTab.value = newTab.id;
+
+  // 新标签激活后，滚动到可视区域
+  nextTick(() => {
+    scrollActiveTabIntoView()
+  })
 };
 
 // 处理Tab点击
@@ -359,17 +380,33 @@ const closeContextMenu = () => {
 const leftPanelWidth = ref(0);
 const isResizing = ref(false);
 
-// 滚轮事件处理函数
-const handleWheel = (e: WheelEvent) => {
-  const tabsContainer = document.querySelector('.log-tabs :deep(.el-tabs__nav-wrap)') as HTMLElement;
-  if (tabsContainer) {
-    // 阻止默认的垂直滚动行为
-    e.preventDefault();
-    // 横向滚动，滚轮deltaY控制滚动速度
-    tabsContainer.scrollLeft += e.deltaY * 2;
-  }
-};
+const onTabsWheel = (e: WheelEvent) => {
+  if (!tabsHeaderEl) return
+  // 使用纵向滚轮驱动横向滚动；有横向滚轮优先用
+  const delta = e.deltaX !== 0 ? e.deltaX : e.deltaY
+  if (delta === 0) return
+  tabsHeaderEl.scrollLeft += delta
+  e.preventDefault() // 阻止页面的默认纵向滚动
+}
 
+const bindTabsWheel = () => {
+  const root = (tabsRef.value?.$el ?? null) as HTMLElement | null
+  // 选取真正可滚动的容器（Element Plus 结构：nav-wrap 包裹 nav-scroll）
+  tabsHeaderEl =
+    (root?.querySelector('.el-tabs__nav-wrap') as HTMLElement | null) ||
+    (root?.querySelector('.el-tabs__nav-scroll') as HTMLElement | null) ||
+    (root?.querySelector('.el-tabs__header') as HTMLElement | null)
+
+  if (tabsHeaderEl) {
+    tabsHeaderEl.addEventListener('wheel', onTabsWheel, { passive: false })
+  }
+}
+const unbindTabsWheel = () => {
+  if (tabsHeaderEl) {
+    tabsHeaderEl.removeEventListener('wheel', onTabsWheel as EventListener)
+    tabsHeaderEl = null
+  }
+}
 // 键盘快捷键处理
 const handleKeydown = (e: KeyboardEvent) => {
   // Ctrl+W 关闭当前Tab
@@ -389,11 +426,7 @@ onMounted(() => {
   // 添加键盘事件监听
   document.addEventListener("keydown", handleKeydown);
 
-  // 添加滚轮事件监听
-  // const tabsContainer = document.querySelector('.log-tabs :deep(.el-tabs__nav-wrap)');
-  // if (tabsContainer) {
-  //   tabsContainer.addEventListener('wheel', handleWheel, { passive: false });
-  // }
+  bindTabsWheel()
 
   document.title = props.code;
 });
@@ -404,15 +437,25 @@ watch(
     document.title = newCode;
   }
 );
+// 当前激活标签变化时，确保其可见
+watch(activeTab, () => {
+  nextTick(() => {
+    scrollActiveTabIntoView()
+  })
+})
+
+// 标签增删后重新获取头部容器并绑定滚轮
+watch(() => openTabs.value.length, () => {
+  nextTick(() => {
+    unbindTabsWheel()
+    bindTabsWheel()
+  })
+})
 
 // 清理事件监听器
 onBeforeUnmount(() => {
   document.removeEventListener("keydown", handleKeydown);
-  // 移除滚轮事件监听
-  // const tabsContainer = document.querySelector('.log-tabs :deep(.el-tabs__nav-wrap)');
-  // if (tabsContainer) {
-  //   tabsContainer.removeEventListener('wheel', handleWheel);
-  // }
+  unbindTabsWheel()
 });
 
 // 处理拖动开始
@@ -669,6 +712,14 @@ const getRowClassName = ({ row }: { row: LogFileInfo }): string => {
   /* 隐藏滚动条但保持滚动功能 */
   scrollbar-width: thin;
   scrollbar-color: #cbd5e1 transparent;
+  /* 阻止父级滚动劫持 */
+  overscroll-behavior: contain;
+}
+
+/* 保证标签不换行，从而产生横向滚动 */
+.log-tabs :deep(.el-tabs__nav) {
+  flex-wrap: nowrap;
+  white-space: nowrap;
 }
 
 .log-tabs :deep(.el-tabs__content) {
