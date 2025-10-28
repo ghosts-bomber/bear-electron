@@ -1,14 +1,20 @@
-export enum BlockType{
-  TEXT=0,
-  LOG=1,
-  IMAGE=2,
-  CHART=3,
+export enum BlockType {
+  TEXT = 0,
+  LOG = 1,
+  IMAGE = 2,
+  CHART = 3,
+  SUMMARY = 4,
+}
+export enum CheckResultType{
+  DETECTED = 0,
+  UNDETECTED = 1,
+  UNCERTAIN = 2,
 }
 export interface TextData {
   text: string;
 }
 export interface LogItem {
-   lineNumber: number; text: string 
+  lineNumber: number; text: string
 }
 export interface LogData {
   logs: LogItem[];
@@ -18,10 +24,15 @@ export interface ChartData {
   option: any;
   data?: any;
 }
-export type PluginData = TextData | LogData | ChartData
+export interface SummaryData {
+  summary: string;
+  checkResultType: CheckResultType;
+}
+
+export type PluginData = TextData | LogData | ChartData | SummaryData
 export interface AnalysisPluginResult {
-  type:BlockType;
-  data:PluginData;
+  type: BlockType;
+  data: PluginData;
 }
 export abstract class IAnalysisPlugin {
   readonly id: string;
@@ -37,6 +48,7 @@ export abstract class IAnalysisPlugin {
   abstract process(
     fileName: string,
     content: string,
+    timestamp?: number,
   ): Promise<AnalysisPluginResult[]>;
 
   // 基类维护所有子类的单例实例，按构造函数区分
@@ -65,7 +77,7 @@ export const composeLogDataResult = (logs: LogItem[]): AnalysisPluginResult => (
   type: BlockType.LOG,
   data: { logs },
 })
-export const composeChartDataResult = (title:string,option: any): AnalysisPluginResult => ({
+export const composeChartDataResult = (title: string, option: any): AnalysisPluginResult => ({
   type: BlockType.CHART,
   data: { title, option },
 })
