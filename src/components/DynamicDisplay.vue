@@ -21,7 +21,8 @@ import TextBlock from '@/components/PluginResult/TextBlock.vue'
 import LogBlock from '@/components/PluginResult/LogBlock.vue'
 import ChartBlock from '@/components/PluginResult/ChartBlock.vue'
 import ImageBlock from '@/components/PluginResult/ImageBlock.vue'
-import type { BlockType, PluginData, LogData, AnalysisPluginResult } from '@/types/plugin'
+import type { PluginData, LogItem, AnalysisPluginResult } from '@/types/plugin'
+import { BlockType, composeTextDataResult, composeLogDataResult, composeChartDataResult } from '@/types/plugin'
 const emit = defineEmits<{
   lineClick:[line:number]
 }>()
@@ -37,24 +38,24 @@ let itemIdCounter = 0
 
 const getComponent = (type: BlockType): Component => {
   switch (type) {
-    case "text":
+    case BlockType.TEXT:
       return markRaw(TextBlock)
-    case "log":
+    case BlockType.LOG:
       return markRaw(LogBlock)
-    case "image":
+    case BlockType.IMAGE:
       return markRaw(ImageBlock)
-    case "chart":
+    case BlockType.CHART:
       return markRaw(ChartBlock)
     default:
       throw new Error(`Unknown block type: ${type}`)
   }
 }
 
-function pushItem(type: BlockType, data: PluginData) {
+function pushItem(data: AnalysisPluginResult) {
   items.value.push({
     id: ++itemIdCounter,
-    type,
-    data
+    type: data.type,
+    data: data.data,
   })
 }
 
@@ -68,12 +69,12 @@ function clear() {
 
 function addRandomItems(n = 1) {
   for (let i = 0; i < n; i++) {
-    pushItem('text', ({ text: '动态文字示例 — #' + itemIdCounter }))
-    const logs: LogData = { logs: [] }
+    pushItem(composeTextDataResult(`动态文字示例 — #${itemIdCounter}`))
+    const logs: LogItem[] = []
     for (let i = -0; i < 2000; i++) {
-      logs.logs.push({ lineNumber: i, text: '动态日志示例 ========++=================— #' + itemIdCounter })
+      logs.push({ lineNumber: i, text: `动态日志示例 ========++=================— #${itemIdCounter}` })
     }
-    pushItem('log', logs)
+    pushItem(composeLogDataResult(logs))
     const option = {
       title: {
         text: '动态图表示例 — #' + itemIdCounter
@@ -90,7 +91,7 @@ function addRandomItems(n = 1) {
         type: 'line'
       }]
     }
-    pushItem('chart', ({ title: '动态图表示例 — #' + itemIdCounter, option }))
+    pushItem(composeChartDataResult( `动态图表示例 — #${itemIdCounter}`, option))
   }
 }
 
@@ -113,18 +114,18 @@ const handleEditorAction = async (action: {
   switch (action.action) {
     case "plugin-processing":
       actionContent = `${timestamp}🔄 ${action.text}`;
-      pushItem('text', ({ text: actionContent }))
+      pushItem(composeTextDataResult(actionContent))
       break;
     case "plugin-result":
       if (action.result) {
         for (let iter of action.result) {
-          pushItem(iter.type, iter.data)
+          pushItem(iter)
         }
       }
       break;
     case "plugin-error":
       actionContent = `${timestamp}❌ 插件错误：${action.text}`;
-      pushItem('text', ({ text: actionContent }))
+      pushItem(composeTextDataResult(actionContent))
       break;
   }
 }

@@ -1,4 +1,9 @@
-export type BlockType = "text" | "log" | "image" | "chart"
+export enum BlockType{
+  TEXT=0,
+  LOG=1,
+  IMAGE=2,
+  CHART=3,
+}
 export interface TextData {
   text: string;
 }
@@ -53,65 +58,15 @@ export abstract class IAnalysisPlugin {
 }
 
 export const composeTextDataResult = (text: string): AnalysisPluginResult => ({
-  type: "text",
+  type: BlockType.TEXT,
   data: { text },
 })
 export const composeLogDataResult = (logs: LogItem[]): AnalysisPluginResult => ({
-  type: "log",
+  type: BlockType.LOG,
   data: { logs },
 })
 export const composeChartDataResult = (title:string,option: any): AnalysisPluginResult => ({
-  type: "chart",
+  type: BlockType.CHART,
   data: { title, option },
 })
 
-
-export interface ChartConfig {
-  type: "echarts";
-  option: any;
-  data?: any;
-}
-export interface PluginResult {
-  type: "html" | "chart" | "mixed" | "text" | "image" | "log";
-  html?: string;
-  chart?: ChartConfig;
-  summary?: string;
-  data?: any;
-}
-
-export interface PluginContext {
-  fileName?: string;
-}
-
-export interface Plugin {
-  id: string;
-  name: string;
-  description: string;
-  process: (
-    content: string,
-    context?: PluginContext
-  ) => Promise<string | PluginResult | PluginResult[]>;
-}
-
-export interface PluginAction {
-  id: string;
-  label: string;
-  contextMenuGroupId: string;
-  contextMenuOrder: number;
-  run: () => Promise<void>;
-}
-
-export interface EditorInstance {
-  addAction: (action: any) => void;
-  getModel: () => any;
-  getValue: () => string;
-  getSelection: () => any;
-}
-
-export interface PluginConfig {
-  id: string;
-  name: string;
-  description: string;
-  enabled: boolean;
-  filePath: string;
-}

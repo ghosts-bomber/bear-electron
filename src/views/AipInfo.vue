@@ -49,7 +49,9 @@
         </el-table-column>
       </el-table>
     </div>
-    <div class="resize-handle" @mousedown="startResize" />
+    <div class="resize-handle" :class="{ 'is-resizing': isResizing }" @mousedown="startResize">
+      <div class="resize-handle-line" />
+    </div>
     <div class="right-panel" :style="{ width: `calc(100% - ${leftPanelWidth}px - 10px)` }">
       <!-- 空状态显示 -->
       <div v-if="openTabs.length === 0" class="empty-state">
@@ -193,6 +195,7 @@ const dvLink = computed(() => {
   );
 });
 
+const isResizing = ref(false);
 // Tab相关状态
 const tabsRef = ref<any>(null)
 let tabsHeaderEl: HTMLElement | null = null
@@ -378,7 +381,6 @@ const closeContextMenu = () => {
 };
 // 添加左右面板宽度控制相关的代码
 const leftPanelWidth = ref(0);
-const isResizing = ref(false);
 
 const onTabsWheel = (e: WheelEvent) => {
   if (!tabsHeaderEl) return
@@ -463,6 +465,8 @@ const startResize = (e: MouseEvent) => {
   isResizing.value = true;
   document.addEventListener("mousemove", handleMouseMove);
   document.addEventListener("mouseup", stopResize);
+  document.body.classList.add("col-resize");
+  e.preventDefault();
 };
 
 // 处理拖动过程
@@ -487,6 +491,7 @@ const handleMouseMove = (e: MouseEvent) => {
 // 处理拖动结束
 const stopResize = () => {
   isResizing.value = false;
+  document.body.classList.remove("col-resize");
   document.removeEventListener("mousemove", handleMouseMove);
   document.removeEventListener("mouseup", stopResize);
 };
@@ -588,7 +593,7 @@ const getRowClassName = ({ row }: { row: LogFileInfo }): string => {
 .aip-info-container {
   position: relative;
   display: flex;
-  gap: 10px;
+  gap: 0;
   width: 100vw;
   max-width: 100%;
   height: calc(100vh - 60px);
@@ -625,26 +630,41 @@ const getRowClassName = ({ row }: { row: LogFileInfo }): string => {
 }
 
 .resize-handle {
-  position: relative;
-  z-index: 10;
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
   width: 10px;
   cursor: col-resize;
-  background: linear-gradient(to bottom, #667eea, #764ba2);
-  border-radius: 5px;
-  opacity: 0.3;
-  transition: all 0.15s ease;
+  user-select: none;
+  background: white;
+  border: 1px solid white;
+  border-right: none;
+  border-left: none;
+  transition: background-color 0.3s ease;
 }
 
-.resize-handle:hover {
-  background: linear-gradient(to bottom, #409eff, #66b1ff);
-  opacity: 0.8;
-  transform: scaleX(1.2);
+.resize-handle:hover,
+.resize-handle.is-resizing {
+  background: #e4e7ed;
 }
 
-.resize-handle:active {
-  background: linear-gradient(to bottom, #337ecc, #4d9eff);
-  opacity: 1;
-  transform: scaleX(1.5);
+.resize-handle .resize-handle-line {
+  width: 2px;
+  height: 40px;
+  background: #c0c4cc;
+  border-radius: 1px;
+  transition: background-color 0.3s ease;
+}
+
+.resize-handle:hover .resize-handle-line,
+.resize-handle.is-resizing .resize-handle-line {
+  background: #909399;
+}
+
+/* 拖动时的全局光标样式（与 LogViewer 保持一致） */
+:global(body.col-resize) {
+  cursor: col-resize !important;
 }
 
 .empty-state {
