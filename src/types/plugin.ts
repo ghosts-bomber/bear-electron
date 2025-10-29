@@ -6,9 +6,10 @@ export enum BlockType {
   SUMMARY = 4,
 }
 export enum CheckResultType{
-  DETECTED = 0,
-  UNDETECTED = 1,
-  UNCERTAIN = 2,
+  UNCERTAIN = 0,
+  DETECTED = 1,
+  UNDETECTED = 2,
+  
 }
 export interface TextData {
   text: string;
@@ -81,4 +82,7 @@ export const composeChartDataResult = (title: string, option: any): AnalysisPlug
   type: BlockType.CHART,
   data: { title, option },
 })
-
+export const composeSummaryDataResult = (summary: string, checkResultType: CheckResultType): AnalysisPluginResult => ({
+  type: BlockType.SUMMARY,
+  data: { summary, checkResultType },
+})

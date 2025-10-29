@@ -1,7 +1,7 @@
 <template>
   <div class="aip-info-container">
     <div class="left-panel" :style="{ width: leftPanelWidth + 'px' }">
-      <el-form label-position="right" label-width="auto" style="max-width: 600px">
+      <el-form label-position="right" label-width="auto" style="max-width: 600px" class="kv-form">
         <el-form-item label="aip" label-position="right">
           <el-link class="mx-1" type="primary" :href="aipInfo.jiraIssueLink" target="_blank">
             {{ aipInfo.jiraIssueKey }}
@@ -12,8 +12,8 @@
           <el-text class="mx-1">{{ aipInfo.carId }}</el-text>
         </el-form-item>
 
-        <el-form-item label="cyberrt version" label-position="right">
-          <el-text class="mx-1">{{ aipInfo.carCyberRtVersion }}</el-text>
+        <el-form-item label="version" label-position="right">
+          <el-text class="mx-1 text-wrap">{{ aipInfo.carCyberRtVersion }}</el-text>
         </el-form-item>
 
         <el-form-item label="问题时间点" label-position="right">
@@ -27,6 +27,7 @@
         <el-form-item label="dv" label-position="right">
           <el-link class="mx-1" type="primary" :href="dvLink" target="_blank">看dv点我</el-link>
         </el-form-item>
+        <el-button type="primary" @click="handleAutoAnalysis">自动分析</el-button>
       </el-form>
 
       <el-table :data="aipDataInfo.logFiles" stripe style="width: 100%;height: 100%;" :row-class-name="getRowClassName"
@@ -361,6 +362,9 @@ const logDbClickedHandle = async (row: any, column: any, event: Event) => {
     ElMessage.error(`下载文件 ${logFile.name} 时出错`);
   }
 };
+const handleAutoAnalysis = ()=>{
+
+}
 const showRowContextMenu = (row: LogFileInfo, column: any, event: MouseEvent) => {
   event.preventDefault();
   // 设置选中的日志文件
@@ -931,6 +935,26 @@ const getRowClassName = ({ row }: { row: LogFileInfo }): string => {
 .highlight-row {
   font-weight: 600;
   color: #f56c6c !important;
+}
+
+/* 表单内容统一左对齐，并允许在空间不足时换行 */
+:deep(.kv-form .el-form-item__content) {
+  justify-content: flex-start;
+  text-align: left;
+  flex-wrap: wrap;
+}
+:deep(.kv-form .el-text),
+:deep(.kv-form .el-link) {
+  white-space: normal;
+  word-break: break-word;
+  overflow-wrap: anywhere;
+  text-align: left;
+}
+/* 针对需要明确换行的字段的类（如 cyberrt version） */
+:deep(.text-wrap) {
+  white-space: normal;
+  word-break: break-word;
+  overflow-wrap: anywhere;
 }
 
 /* 表格样式优化 */
