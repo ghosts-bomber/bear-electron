@@ -21,6 +21,7 @@ import TextBlock from '@/components/PluginResult/TextBlock.vue'
 import LogBlock from '@/components/PluginResult/LogBlock.vue'
 import ChartBlock from '@/components/PluginResult/ChartBlock.vue'
 import ImageBlock from '@/components/PluginResult/ImageBlock.vue'
+import SummaryBlock from '@/components/PluginResult/SummaryBlock.vue'
 import type { PluginData, LogItem, AnalysisPluginResult } from '@/types/plugin'
 import { BlockType, composeTextDataResult, composeLogDataResult, composeChartDataResult } from '@/types/plugin'
 const emit = defineEmits<{
@@ -46,6 +47,8 @@ const getComponent = (type: BlockType): Component => {
       return markRaw(ImageBlock)
     case BlockType.CHART:
       return markRaw(ChartBlock)
+    case BlockType.SUMMARY:
+      return markRaw(SummaryBlock)
     default:
       throw new Error(`Unknown block type: ${type}`)
   }
