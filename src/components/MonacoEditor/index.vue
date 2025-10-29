@@ -4,7 +4,7 @@
 
 <script setup lang="ts">
 import * as monaco from "monaco-editor";
-import { onMounted, onBeforeUnmount, ref, watch, inject } from "vue";
+import { onMounted, onBeforeUnmount, ref, watch } from "vue";
 import { usePluginStore } from "@/store/modules/plugin";
 
 const props = defineProps({
@@ -64,8 +64,8 @@ const initMonaco = () => {
 const addPluginContextMenuActions = () => {
   if (!editor) return;
   pluginStore.loadPlugins();
-  const plugins = pluginStore.getPlugins;
-  plugins.forEach((plugin, index) => {
+  const plugins = pluginStore.getPlugins as any[];
+  plugins.forEach((plugin: any, index: number) => {
     editor!.addAction({
       id: `plugin-${plugin.id}`,
       label: `📦 ${plugin.name}`,

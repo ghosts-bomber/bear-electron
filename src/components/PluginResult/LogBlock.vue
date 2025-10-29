@@ -1,7 +1,7 @@
 <template>
     <div class="log-block">
         <div class="log-container">
-            <div v-for="log in props.data.logs" :key="log.line" class="log-line"
+            <div v-for="log in props.data.logs" :key="log.lineNumber" class="log-line"
                 @contextmenu.prevent="handleRightClick(log)">
                 <span class="line-number">{{ log.lineNumber }}</span>
                 <span class="log-text">{{ log.text }}</span>

@@ -102,7 +102,7 @@ import PTApi, { type PTLoginData } from "@/api/platform";
 import router from "@/router";
 import { getPFToken, setPFToken } from "@/utils/auth";
 import { User, Lock, DataAnalysis, CircleCheck, InfoFilled } from "@element-plus/icons-vue";
-import { ref,reactive, onMounted } from "vue";
+import { ref, reactive, onMounted } from "vue";
 import { ElMessage } from "element-plus";
 
 const loading = ref(false);
@@ -119,7 +119,7 @@ const emit = defineEmits<{
 async function handleLoginSubmit() {
   loading.value = true;
   PTApi.login(loginData)
-    .then((data) => {
+    .then((data: any) => {
       const { access_token } = data;
       if (access_token !== "") {
         setPFToken(access_token);

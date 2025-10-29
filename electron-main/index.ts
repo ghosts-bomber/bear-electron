@@ -1,5 +1,4 @@
-// electron-main/index.ts
-import { app, BrowserWindow, ipcMain, dialog } from "electron"
+import { app, BrowserWindow } from "electron"
 import path from "path"
 import { registerIpcHandlers } from "./ipc-handlers"
 
@@ -17,7 +16,7 @@ const createWindow = () => {
   })
   // 如果打包了，渲染index.html
   if (process.env.NODE_ENV !== 'development') {
-    win.loadFile(path.join(__dirname, "../index.html"))
+    win.loadFile(path.join(__dirname, "index.html"))
     win.webContents.openDevTools()
   } else {
     let url = "http://localhost:7900" // 更新端口号，匹配当前Vite服务器端口

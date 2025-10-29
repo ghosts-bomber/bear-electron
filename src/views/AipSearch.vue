@@ -106,7 +106,7 @@ import PTApi from "@/api/platform";
 import { useAipStore } from "@/store";
 import { ElMessage } from "element-plus";
 const emit = defineEmits<{
-  'search-success': (aipCode: string) => void;
+  searchSuccess: [aipCode: string];
 }>();
 const select_data = reactive([
   { key: "AIP", val: "AIP" },
@@ -201,7 +201,7 @@ async function searchHandle() {
       saveSearchRecord(select.value, aipcode);
 
       ElMessage.success("搜索成功！");
-      emit('search-success', aipcode);
+      emit('searchSuccess', aipcode);
     } else {
       ElMessage.warning("未找到相关信息，请检查 JIRA 号码是否正确");
     }

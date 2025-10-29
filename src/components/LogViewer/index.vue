@@ -62,12 +62,12 @@
 </template>
 
 <script setup lang="ts">
+import { ChatDotSquare, Close } from "@element-plus/icons-vue";
 import { ref, onMounted, onBeforeUnmount, watch } from "vue";
 import type { Ref } from "vue";
 import MonacoEditor from "@/components/MonacoEditor/index.vue";
 import DynamicDisplay from "@/components/DynamicDisplay.vue";
 import type { AnalysisPluginResult } from "@/types/plugin";
-import { ChatDotSquare, Close, Delete } from "@element-plus/icons-vue";
 
 interface Props {
   content: string;

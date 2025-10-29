@@ -5,7 +5,6 @@ import CpuUsageAnalyzerPlugin from "./cpu-log-usage-analyzer";
 import MemoryUsageAnalyzerPlugin from "./memory-usage-analyzer";
 import LidarWheelAnalysisPlugin from "./lidar-wheel-analysis";
 import CameraFrameRateAnalysisPlugin from "./camera-frame-rate-analysis";
-import textExportPlugin from "./text-export";
 import GnssLogAnalysisPlugin from "./gnss-log-analysis";
 // 导出所有插件
 export const AnalysisPlugins: IAnalysisPlugin[] = [
@@ -15,7 +14,6 @@ export const AnalysisPlugins: IAnalysisPlugin[] = [
   MemoryUsageAnalyzerPlugin,
   LidarWheelAnalysisPlugin,
   CameraFrameRateAnalysisPlugin,
-  // textExportPlugin,
   GnssLogAnalysisPlugin,
 ];
 

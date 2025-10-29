@@ -27,7 +27,8 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, nextTick, onMounted, onBeforeUnmount } from 'vue'
+import { ref, computed, onMounted, onBeforeUnmount } from 'vue'
+import type { CSSProperties } from 'vue'
 import { ElMessage } from 'element-plus'
 import { FolderOpened, Folder } from '@element-plus/icons-vue'
 
@@ -58,17 +59,13 @@ const emit = defineEmits<{
 
 const menuRef = ref<HTMLElement>()
 
-// 计算菜单位置样式
-const menuStyle = computed(() => {
-  if (!props.visible || !props.position) return {}
-  
-  return {
-    position: 'fixed',
-    top: `${props.position.y}px`,
-    left: `${props.position.x}px`,
-    zIndex: 9999
-  }
-})
+// 计算菜单位置样式（明确为 CSSProperties，避免联合类型导致不兼容）
+const menuStyle = computed<CSSProperties>(() => ({
+  position: 'fixed',
+  top: `${props.position?.y ?? 0}px`,
+  left: `${props.position?.x ?? 0}px`,
+  zIndex: 9999
+}))
 
 // 用默认应用打开文件
 const handleOpenWithDefaultApp = async () => {

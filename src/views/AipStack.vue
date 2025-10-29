@@ -2,7 +2,7 @@
     <div class="aip-stack">
         <el-tabs v-model="currentTab" type="card" editable addable @edit="handleTabsEdit">
             <el-tab-pane v-for="tab in jiraTabs" :key="tab.name" :label="tab.title" :name="tab.name">
-                <component :is="tab.component" @aip-code-display="(aipCode:string) => handleAipCodeDisplay(aipCode, tab.name)"/>
+                <component :is="tab.component" @aipCodeDisplay="(aipCode:string) => handleAipCodeDisplay(aipCode, tab.name)"/>
             </el-tab-pane>
         </el-tabs>
     </div>

@@ -1,6 +1,6 @@
 <template>
     <div class="aip-analysis">
-        <component :is="currentViewComponent" @search-success="handleSearchSuccess" :code="currentAipCode" />
+        <component :is="currentViewComponent" @searchSuccess="handleSearchSuccess" :code="currentAipCode" />
     </div>
 </template>
 
@@ -9,7 +9,7 @@ import { ref, computed } from 'vue'
 import AipSearch from '@/views/AipSearch.vue';
 import AipInfo from '@/views/AipInfo.vue';
 const emit = defineEmits<{
-    "aip-code-display": (aipCode: string)=>void,
+    aipCodeDisplay: [aipCode:string],
 }>();
 const viewMap: Record<string, any> = {
     "aipSearch": AipSearch,
@@ -25,6 +25,6 @@ const handleSearchSuccess = (aipCode: string) => {
     console.log('搜索成功，切换到详情页面');
     currentView.value = "aipInfo";
     currentAipCode.value = aipCode;
-    emit("aip-code-display", aipCode);
+    emit("aipCodeDisplay", aipCode);
 };
 </script>
