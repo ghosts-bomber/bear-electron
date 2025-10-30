@@ -1,0 +1,8 @@
+[Desktop Entry]
+Name=beerbear
+Comment=day day up
+Exec=/opt/beerbear/beerbear
+Icon=/opt/beerbear/icon.png
+Terminal=false
+Type=Application
+Categories=Utility;

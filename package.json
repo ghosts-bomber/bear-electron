@@ -1,11 +1,12 @@
 {
-  "name": "bear-electron",
+  "name": "beerbear",
   "private": true,
   "version": "0.0.0",
   "author": {
-    "name": "bear",
-    "email": "bear@neolix.com"
+    "name": "beerbear",
+    "email": "beerbear@neolix.com"
   },
+  "description": "day day up",
   "main": "dist-electron/index.js",
   "homepage": "./",
   "scripts": {
@@ -64,24 +65,31 @@
     "wait-on": "^9.0.1"
   },
   "build": {
-    "appId": "com.example.bear-electron",
-    "productName": "Bear Electron",
+    "appId": "com.example.beerbear",
+    "productName": "beerbear",
     "directories": {
       "output": "dist-electron"
     },
     "files": [
       "dist/**/*",
       "dist-electron/**/*",
-      "node_modules/**/*"
+      "node_modules/**/*",
+      "build/**/*"
     ],
-    "mac": {
-      "category": "public.app-category.productivity"
-    },
     "win": {
       "target": "nsis"
     },
     "linux": {
-      "target": "deb"
+      "target": "deb",
+      "icon": "build/icons/icon.png",                  
+      "desktop": {
+        "entry": "build/beerbear.desktop" 
+      }
+    },
+    "deb": {
+      "depends": [],
+      "afterInstall": "scripts/after-install.sh",
+      "afterRemove": "scripts/after-remove.sh"
     }
   },
   "engines": {
