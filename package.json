@@ -2,6 +2,10 @@
   "name": "bear-electron",
   "private": true,
   "version": "0.0.0",
+  "author": {
+    "name": "bear",
+    "email": "bear@neolix.com"
+  },
   "main": "dist-electron/index.js",
   "homepage": "./",
   "scripts": {
