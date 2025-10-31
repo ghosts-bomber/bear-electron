@@ -54,11 +54,11 @@
       <div class="resize-handle-line" />
     </div>
     <div class="right-panel" :style="{ width: `calc(100% - ${leftPanelWidth}px - 10px)` }">
-      <div v-if="bShowAutoAnalysis">
+      <div v-show="bShowAutoAnalysis">
         <AutoAnalysis />
       </div>
       <!-- 空状态显示 -->
-      <div v-else-if="openTabs.length === 0" class="empty-state">
+      <div v-show="openTabs.length === 0 && !bShowAutoAnalysis" class="empty-state">
         <div class="empty-content">
           <el-icon size="48" color="#c0c4cc">
             <Document />
@@ -68,7 +68,7 @@
       </div>
 
       <!-- Tab页面 -->
-      <el-tabs v-else v-model="activeTab" type="card" closable class="log-tabs" ref="tabsRef" @tab-remove="removeTab"
+      <el-tabs v-show="openTabs.length > 0 && !bShowAutoAnalysis" v-model="activeTab" type="card" closable class="log-tabs" ref="tabsRef" @tab-remove="removeTab"
         @tab-click="handleTabClick">
         <el-tab-pane v-for="tab in openTabs" :key="tab.id" :name="tab.id" :closable="true">
           <template #label>
