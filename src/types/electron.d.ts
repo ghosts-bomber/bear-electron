@@ -9,6 +9,7 @@ declare global {
       openJiraFile: (jira_id: string, file_name: string, file_url: string) => Promise<unknown>;
       openJiraFileWithDefaultApp: (jira_id: string, file_name: string, file_url: string) => Promise<{ success: boolean; message?: string; filePath?: string }>;
       viewJiraFileFolder: (jira_id: string) => Promise<{ success: boolean; message?: string; folderPath?: string }>;
+      openLink: (link: string) => Promise<{ success: boolean; message?: string; link?: string }>;
       getPtUsername: () => Promise<string>;
       getPtPassword: () => Promise<string>;
       setPtUsername: (username: string) => Promise<void>;

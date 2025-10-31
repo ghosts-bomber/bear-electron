@@ -1,7 +1,7 @@
 import { ipcMain } from 'electron';
 import fs from 'fs';
 import path from 'path';
-import { openJiraFileHandler, viewJiraFileFolder, openJiraFileWithDefaultApp } from './platform-utils';
+import { openJiraFileHandler, viewJiraFileFolder, openJiraFileWithDefaultApp, openLink } from './platform-utils';
 import { config } from './config';
 // 注册 IPC 处理器
 export const registerIpcHandlers = () => {
@@ -9,7 +9,7 @@ export const registerIpcHandlers = () => {
   ipcMain.handle("open-jira-file", openJiraFileHandler);
   ipcMain.handle("view-jira-file-folder", viewJiraFileFolder);
   ipcMain.handle("open-jira-file-with-default-app", openJiraFileWithDefaultApp);
-
+  ipcMain.handle("open-link", openLink);
   // config
   ipcMain.handle("get-pt-username", (_event) => {
     return config.getPtUsername();

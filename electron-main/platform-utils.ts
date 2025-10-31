@@ -154,3 +154,22 @@ export const viewJiraFileFolder = async (_event: any, jira_id: string) => {
     };
   }
 };
+
+export const openLink = async (_event: any, link: string) => {
+  try {
+    const { shell } = await import('electron');
+    await shell.openExternal(link);
+    return {
+      success: true,
+      message: '链接打开成功',
+      link
+    };
+  } catch (error) {
+    console.error('open_link 错误:', error);
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    return {
+      success: false,
+      message: `操作失败: ${errorMessage}`
+    };
+  }
+};

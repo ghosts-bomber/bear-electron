@@ -3,7 +3,7 @@
     <div class="left-panel" :style="{ width: leftPanelWidth + 'px' }">
       <el-form label-position="right" label-width="auto" style="max-width: 600px" class="kv-form">
         <el-form-item label="aip" label-position="right">
-          <el-link class="mx-1" type="primary" :href="aipInfo.jiraIssueLink" target="_blank">
+          <el-link class="mx-1" type="primary" @click="openExternalLink(aipInfo.jiraIssueLink || '')" target="_blank">
             {{ aipInfo.jiraIssueKey }}
           </el-link>
         </el-form-item>
@@ -25,7 +25,7 @@
         </el-form-item>
 
         <el-form-item label="dv" label-position="right">
-          <el-link class="mx-1" type="primary" :href="dvLink" target="_blank">看dv点我</el-link>
+          <el-link class="mx-1" type="primary" @click="openExternalLink(dvLink || '')" target="_blank">看dv点我</el-link>
         </el-form-item>
         <el-check-tag :checked="bShowAutoAnalysis" @click="handleAutoAnalysis">自动分析</el-check-tag>
       </el-form>
@@ -595,6 +595,23 @@ const isTimeInRange = (fileName: string): boolean => {
 };
 const getRowClassName = ({ row }: { row: LogFileInfo }): string => {
   return row.containErrorTime ? "highlight-row" : "";
+};
+
+const openExternalLink = async (link: string) => {
+  if (!link) {
+    console.error("链接为空");
+    return;
+  }
+  try {
+    const { success, message } = await window.electronAPI?.openLink(link);
+    if (success) {
+      console.log("链接打开成功:", message);
+    } else {
+      console.error("链接打开失败:", message);
+    }
+  } catch (error) {
+    console.error("open-link 错误:", error);
+  }
 };
 </script>
 

@@ -13,11 +13,15 @@ export enum CheckResultType{
 export enum AnalysisType {
   LIFT = 1,
   JUMP_STANDBY = 2,
+  AD_LIGHT = 3,
 }
+
 export const AnalysisTypeMap = {
-  [AnalysisType.LIFT]: "升降机",
+  [AnalysisType.LIFT]: "升降级",
   [AnalysisType.JUMP_STANDBY]: "跳Standby",
+  [AnalysisType.AD_LIGHT]: "AD灯不亮",
 }
+
 export interface TextData {
   text: string;
 }
