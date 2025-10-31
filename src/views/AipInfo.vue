@@ -27,7 +27,7 @@
         <el-form-item label="dv" label-position="right">
           <el-link class="mx-1" type="primary" :href="dvLink" target="_blank">看dv点我</el-link>
         </el-form-item>
-        <el-button type="primary" @click="handleAutoAnalysis">自动分析</el-button>
+        <el-check-tag :checked="bShowAutoAnalysis" @click="handleAutoAnalysis">自动分析</el-check-tag>
       </el-form>
 
       <el-table :data="aipDataInfo.logFiles" stripe style="width: 100%;height: 100%;" :row-class-name="getRowClassName"
@@ -54,8 +54,11 @@
       <div class="resize-handle-line" />
     </div>
     <div class="right-panel" :style="{ width: `calc(100% - ${leftPanelWidth}px - 10px)` }">
+      <div v-if="bShowAutoAnalysis">
+        <AutoAnalysis />
+      </div>
       <!-- 空状态显示 -->
-      <div v-if="openTabs.length === 0" class="empty-state">
+      <div v-else-if="openTabs.length === 0" class="empty-state">
         <div class="empty-content">
           <el-icon size="48" color="#c0c4cc">
             <Document />
@@ -95,6 +98,7 @@
 import PTApi from "@/api/platform";
 import LogViewer from "@/components/LogViewer/index.vue";
 import LogTableContextMenu from "@/components/LogTableContextMenu.vue";
+import AutoAnalysis from "@/components/AutoAnalysis.vue";
 import { useAipStore } from "@/store";
 import { Document, DocumentCopy } from "@element-plus/icons-vue";
 import type { AxiosResponse } from "axios";
@@ -195,7 +199,7 @@ const dvLink = computed(() => {
     aipDataInfo.ossName
   );
 });
-
+const bShowAutoAnalysis = ref(false);
 const isResizing = ref(false);
 // Tab相关状态
 const tabsRef = ref<any>(null)
@@ -302,6 +306,7 @@ const showTabContextMenu = (event: MouseEvent, tab: LogTab) => {
 };
 
 const logDbClickedHandle = async (row: any, column: any, event: Event) => {
+  bShowAutoAnalysis.value = false;
   let logFile = row as LogFileInfo;
   const existingTab = openTabs.value.find((tab) => tab.logFile.objName === logFile.objName);
   if (existingTab) {
@@ -362,8 +367,8 @@ const logDbClickedHandle = async (row: any, column: any, event: Event) => {
     ElMessage.error(`下载文件 ${logFile.name} 时出错`);
   }
 };
-const handleAutoAnalysis = ()=>{
-
+function handleAutoAnalysis() {
+  bShowAutoAnalysis.value = !bShowAutoAnalysis.value;
 }
 const showRowContextMenu = (row: LogFileInfo, column: any, event: MouseEvent) => {
   event.preventDefault();

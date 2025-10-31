@@ -9,7 +9,14 @@ export enum CheckResultType{
   UNCERTAIN = 0,
   DETECTED = 1,
   UNDETECTED = 2,
-  
+}
+export enum AnalysisType {
+  LIFT = 1,
+  JUMP_STANDBY = 2,
+}
+export const AnalysisTypeMap = {
+  [AnalysisType.LIFT]: "升降机",
+  [AnalysisType.JUMP_STANDBY]: "跳Standby",
 }
 export interface TextData {
   text: string;
@@ -86,3 +93,4 @@ export const composeSummaryDataResult = (summary: string, checkResultType: Check
   type: BlockType.SUMMARY,
   data: { summary, checkResultType },
 })
+
