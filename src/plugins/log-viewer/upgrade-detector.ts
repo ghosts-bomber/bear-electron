@@ -1,5 +1,5 @@
 import type { AnalysisPluginResult,LogItem } from "@/types/plugin";
-import { IAnalysisPlugin, composeTextDataResult,composeLogDataResult } from "@/types/plugin";;
+import { IAnalysisPlugin, composeTextDataResult,composeLogDataResult,LogClass } from "@/types/plugin";;
 
 interface DetectionResult {
   lineNumber: number;
@@ -7,7 +7,7 @@ interface DetectionResult {
 }
 class UpgradeDetectorPlugin extends IAnalysisPlugin {
   private constructor() {
-    super("upgrade-detector", "升降级检测器", "检测日志中的升降级事件和异常状态");
+    super("upgrade-detector", "升降级检测器", "检测日志中的升降级事件和异常状态",[LogClass.NEODRIVE]);
   }
   async process(
     fileName: string,

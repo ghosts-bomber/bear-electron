@@ -1,4 +1,4 @@
-import type {IAnalysisPlugin} from "@/types/plugin";
+import type { IAnalysisPlugin } from "@/types/plugin";
 import UpgradeDetectorPlugin from "./upgrade-detector";
 import StackTraceDetectorPlugin from "./stack-trace-detector";
 import CpuUsageAnalyzerPlugin from "./cpu-log-usage-analyzer";
@@ -7,6 +7,7 @@ import LidarWheelAnalysisPlugin from "./lidar-wheel-analysis";
 import CameraFrameRateAnalysisPlugin from "./camera-frame-rate-analysis";
 import GnssLogAnalysisPlugin from "./gnss-log-analysis";
 // 导出所有插件
+export { UpgradeDetectorPlugin, StackTraceDetectorPlugin, CpuUsageAnalyzerPlugin, MemoryUsageAnalyzerPlugin, LidarWheelAnalysisPlugin, CameraFrameRateAnalysisPlugin, GnssLogAnalysisPlugin };
 export const AnalysisPlugins: IAnalysisPlugin[] = [
   UpgradeDetectorPlugin,
   StackTraceDetectorPlugin,
@@ -21,6 +22,11 @@ export const AnalysisPlugins: IAnalysisPlugin[] = [
 export class AnalysisPluginLoader {
   private static instance: AnalysisPluginLoader;
   private loadedPlugins: Map<string, IAnalysisPlugin> = new Map();
+
+  private constructor() {
+    this.loadAllPlugins();
+  }
+
   static getInstance(): AnalysisPluginLoader {
     if (!AnalysisPluginLoader.instance) {
       AnalysisPluginLoader.instance = new AnalysisPluginLoader();
@@ -37,7 +43,6 @@ export class AnalysisPluginLoader {
       for (const plugin of AnalysisPlugins) {
         this.loadedPlugins.set(plugin.id, plugin);
       }
-
       console.log(`成功加载 ${this.loadedPlugins.size} 个插件`);
     } catch (error) {
       console.error("插件加载失败:", error);
@@ -72,5 +77,3 @@ export class AnalysisPluginLoader {
 // 导出插件加载器实例
 export const analysisPluginLoader = AnalysisPluginLoader.getInstance();
 
-// 默认导出所有插件
-export default AnalysisPlugins;

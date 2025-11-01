@@ -1,9 +1,9 @@
 import type { AnalysisPluginResult, LogItem } from "@/types/plugin";
-import { IAnalysisPlugin, composeTextDataResult, composeLogDataResult } from "@/types/plugin";;
+import { IAnalysisPlugin, composeTextDataResult, composeLogDataResult,LogClass } from "@/types/plugin";;
 
 class StackTraceDetectorPlugin extends IAnalysisPlugin {
   private constructor() {
-    super("stack-trace-detector", "trace日志堆栈检查", "检测日志中的堆栈跟踪信息");
+    super("stack-trace-detector", "trace日志堆栈检查", "检测日志中的堆栈跟踪信息",[LogClass.NEODRIVE_TRACE]);
   }
   async process(
     fileName: string,

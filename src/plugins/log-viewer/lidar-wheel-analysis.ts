@@ -1,5 +1,5 @@
-import type { TextData, ChartData, LogData, BlockType, LogItem, AnalysisPluginResult, } from "@/types/plugin";
-import { IAnalysisPlugin, composeTextDataResult, composeChartDataResult } from "@/types/plugin";
+import type { AnalysisPluginResult } from "@/types/plugin";
+import { IAnalysisPlugin, composeTextDataResult, composeChartDataResult,LogClass } from "@/types/plugin";
 
 interface LogCategory {
   lidarFps: string[];
@@ -24,7 +24,7 @@ interface WheelSpeed {
 }
 class LidarWheelAnalysisPlugin extends IAnalysisPlugin {
   private constructor() {
-    super("lidar-wheel-analysis", "雷达轮速分析", "分析雷达轮速相关的日志数据并生成可视化图表");
+    super("lidar-wheel-analysis", "雷达轮速分析", "分析雷达轮速相关的日志数据并生成可视化图表",[LogClass.NEODRIVE]);
   }
   async process(fileName: string, content: string): Promise<AnalysisPluginResult[]> {
     const results: AnalysisPluginResult[] = [];

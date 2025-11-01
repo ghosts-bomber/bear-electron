@@ -1,5 +1,5 @@
 import type { AnalysisPluginResult, LogItem } from "@/types/plugin";
-import { IAnalysisPlugin, composeTextDataResult, composeLogDataResult, composeChartDataResult } from "@/types/plugin";;
+import { IAnalysisPlugin, composeTextDataResult, composeLogDataResult, composeChartDataResult,LogClass } from "@/types/plugin";;
 
 interface MemoryUsageData {
   time: number;
@@ -17,7 +17,7 @@ interface MemoryAnalysisResult {
 
 class MemoryUsageAnalyzerPlugin extends IAnalysisPlugin {
   private constructor() {
-    super("memory-usage-analyzer", "Neodrive内存使用率分析", "分析日志中的Neodrive内存使用率数据并绘制趋势图");
+    super("memory-usage-analyzer", "Neodrive内存使用率分析", "分析日志中的Neodrive内存使用率数据并绘制趋势图",[LogClass.RESOURCE_MONITOR]);
   }
 
   async process(

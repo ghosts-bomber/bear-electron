@@ -1,5 +1,5 @@
-import type { TextData, ChartData, LogData, BlockType, LogItem, AnalysisPluginResult, } from "../../types/plugin";
-import { IAnalysisPlugin, composeTextDataResult, composeChartDataResult } from "../../types/plugin";
+import type {  AnalysisPluginResult, } from "@/types/plugin";
+import { IAnalysisPlugin, composeTextDataResult, composeChartDataResult,LogClass } from "@/types/plugin";
 
 interface LogCategory {
     orinRecvMpu: string[];
@@ -78,7 +78,7 @@ function secondsToTimestamp(seconds: number): number {
 
 class GnssLogAnalysisPlugin extends IAnalysisPlugin {
     private constructor() {
-        super("gnss-log-analysis", "GNSS日志分析", "分析GNSS日志生成图表与文本");
+        super("gnss-log-analysis", "GNSS日志分析", "分析GNSS日志生成图表与文本",[LogClass.DRIVER_GNSS]);
     }
     results: AnalysisPluginResult[] = [];
     process = async (fileName: string, content: string): Promise<AnalysisPluginResult[]> => {

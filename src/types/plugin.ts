@@ -11,17 +11,27 @@ export enum CheckResultType{
   UNDETECTED = 2,
 }
 export enum AnalysisType {
-  LIFT = 1,
+  DOWN_GRADE = 1,
   JUMP_STANDBY = 2,
   AD_LIGHT = 3,
 }
 
 export const AnalysisTypeMap = {
-  [AnalysisType.LIFT]: "升降级",
+  [AnalysisType.DOWN_GRADE]: "升降级",
   [AnalysisType.JUMP_STANDBY]: "跳Standby",
   [AnalysisType.AD_LIGHT]: "AD灯不亮",
 }
 
+export enum LogClass{
+  NEODRIVE = "neodrive",
+  OPENAPI = "openapi",
+  DRIVER_GNSS = "driver_gnss",
+  RESOURCE_MONITOR = "resource_monitor",
+  CPU_LOG = "cpu_log",
+  MPU_MONITOR = "mpu_monitor",
+  NVSIPL = "nvsip",
+  NEODRIVE_TRACE = "trace",
+}
 export interface TextData {
   text: string;
 }
@@ -50,17 +60,19 @@ export abstract class IAnalysisPlugin {
   readonly id: string;
   readonly name: string;
   readonly description: string;
+  readonly logClass:LogClass[];
 
-  protected constructor(id: string, name: string, description: string) {
+  protected constructor(id: string, name: string, description: string, logClass:LogClass[]) {
     this.id = id;
     this.name = name;
     this.description = description;
+    this.logClass = logClass;
   }
 
   abstract process(
     fileName: string,
     content: string,
-    timestamp?: number,
+    datetime?: Date,
   ): Promise<AnalysisPluginResult[]>;
 
   // 基类维护所有子类的单例实例，按构造函数区分

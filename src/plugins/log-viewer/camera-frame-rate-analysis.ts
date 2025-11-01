@@ -1,5 +1,5 @@
-import type { AnalysisPluginResult, LogItem } from "@/types/plugin";
-import { IAnalysisPlugin, composeTextDataResult, composeLogDataResult, composeChartDataResult } from "@/types/plugin";;
+import type { AnalysisPluginResult } from "@/types/plugin";
+import { IAnalysisPlugin, composeTextDataResult, composeChartDataResult,LogClass } from "@/types/plugin";;
 
 
 
@@ -18,7 +18,7 @@ interface TimeRange {
 
 class CameraFrameRateAnalysisPlugin extends IAnalysisPlugin {
   private constructor() {
-    super("camera-frame-rate-analysis", "相机帧率分析", "分析相机日志中的传感器帧率数据并生成可视化图表");
+    super("camera-frame-rate-analysis", "相机帧率分析", "分析相机日志中的传感器帧率数据并生成可视化图表",[LogClass.NVSIPL]);
   }
   async process(fileName: string, content: string): Promise<AnalysisPluginResult[]> {
     const results: AnalysisPluginResult[] = [];

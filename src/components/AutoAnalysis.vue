@@ -1,12 +1,10 @@
 <template>
     <div class="auto-analysis">
         <div class="auto-analysis-top">
-            <select class="analysis-type-select">
-                <option value="1">分析类型1</option>
-                <option value="2">分析类型2</option>
-                <option value="3">分析类型3</option>
+            <select class="analysis-type-select" v-model="analysisTypeSelect">
+                <option v-for="(type, value) in AnalysisTypeMap" :key="value" :value="value">{{ type }}</option>
             </select>
-            <el-button type="primary">分析</el-button>
+            <el-button type="primary" @click="handleAnalysis">分析</el-button>
         </div>
         <DynamicDisplay />
     </div>
@@ -14,7 +12,12 @@
 
 <script setup lang="ts">
 import DynamicDisplay from '@/components/DynamicDisplay.vue';
-
+import { AnalysisTypeMap } from '@/types/plugin';
+import { ref } from 'vue'
+const analysisTypeSelect = ref<any>(null);
+const handleAnalysis = async () => {
+    const analysisType = analysisTypeSelect.value;
+}
 </script>
 
 <style scoped lang="scss">

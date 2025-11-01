@@ -68,8 +68,8 @@
       </div>
 
       <!-- Tab页面 -->
-      <el-tabs v-show="openTabs.length > 0 && !bShowAutoAnalysis" v-model="activeTab" type="card" closable class="log-tabs" ref="tabsRef" @tab-remove="removeTab"
-        @tab-click="handleTabClick">
+      <el-tabs v-show="openTabs.length > 0 && !bShowAutoAnalysis" v-model="activeTab" type="card" closable
+        class="log-tabs" ref="tabsRef" @tab-remove="removeTab" @tab-click="handleTabClick">
         <el-tab-pane v-for="tab in openTabs" :key="tab.id" :name="tab.id" :closable="true">
           <template #label>
             <div class="tab-label-container" @contextmenu.prevent="showTabContextMenu($event, tab)">
@@ -105,44 +105,8 @@ import type { AxiosResponse } from "axios";
 import { ElMessage, ElMessageBox } from "element-plus";
 import { computed, onBeforeUnmount, onMounted, reactive, ref, watch } from "vue";
 import { nextTick } from 'vue';
-interface AipInfo {
-  carCyberRtVersion?: string;
-  carId?: string;
-  carMapVersion?: string;
-  carOtherVersion?: string;
-  createTime?: string;
-  dateTime?: string;
-  dvObjName?: string;
-  id: number;
-  jiraIssueKey?: string;
-  jiraIssueLink?: string;
-  machineType?: string;
-  mainQuestionId?: number;
-  ossName?: string;
-  remark?: string;
-  reporter?: string;
-  status?: number;
-  subQuestionId?: number;
-  subType?: string;
-  title?: string;
-  type?: string;
-}
-
-interface LogFileInfo {
-  cut: boolean;
-  filesize: number;
-  name: string;
-  objName: string;
-  updateTime: string;
-  containErrorTime?: boolean;
-}
-
-interface AipDataInfo {
-  dvLinks: string[];
-  logFiles: LogFileInfo[];
-  ossName?: string;
-  record3dayLinks: string[];
-}
+import type { AipInfo, LogFileInfo, AipDataInfo } from "@/types/pt-type";
+import { isTimeInRangeUseString, openJiraFileWithDownload } from "@/utils/tools";
 
 interface LogTab {
   id: string;
@@ -176,7 +140,7 @@ PTApi.aipDataInfo(aipInfo.id)
       aipDataInfo.record3dayLinks = response.record3dayLinks || [];
       aipDataInfo.ossName = response.ossName;
       for (let logFile of aipDataInfo.logFiles) {
-        logFile.containErrorTime = isTimeInRange(logFile.name);
+        logFile.containErrorTime = isTimeInRangeUseString(logFile.name, aipInfo.dateTime || "");
       }
     }
     console.log("aipDataInfo:", aipDataInfo);
@@ -325,46 +289,15 @@ const logDbClickedHandle = async (row: any, column: any, event: Event) => {
   });
 
   try {
-    await PTApi.getFileDownloadUrl(logFile.objName)
-      .then((data: AxiosResponse) => {
-        console.log("data:", data);
-        url = data as unknown as string;
-        console.log("file url", url);
-      })
-      .catch()
-      .finally();
-    const url_match = url.match(/https?:\/\/[^/]+(\/.+)/);
-    if (url_match !== null) {
-      console.log("url_match:", url_match);
-      try {
-        //if (!logFile.cut) {
-        const { success, content, message } = await (window as any).electronAPI.openJiraFile(
-          aipInfo.jiraIssueKey,
-          logFile.name,
-          url_match[0]
-        );
-        if (!success) {
-          throw new Error(message);
-        }
-        // 添加到Tab中
-        addTab(logFile, content);
-        // 关闭加载提示，显示成功消息
-        loadingMessage.close();
-        ElMessage.success(`${logFile.name} 加载完成`);
-      } catch (error) {
-        console.error("Error processing tar.gz file:", error);
-        loadingMessage.close();
-        ElMessage.error(`处理文件 ${logFile.name} 时出错: ${error}`);
-      }
-    } else {
-      console.log("download file:can't find match params,url:", url);
-      loadingMessage.close();
-      ElMessage.error("无法获取文件下载链接");
-    }
-  } catch (error) {
+    const content = await openJiraFileWithDownload(aipInfo.jiraIssueKey, logFile);
+    addTab(logFile, content);
+    // 关闭加载提示，显示成功消息
+    loadingMessage.close();
+    ElMessage.success(`${logFile.name} 加载完成`);
+  } catch (error: any) {
     console.error("Error downloading file:", error);
     loadingMessage.close();
-    ElMessage.error(`下载文件 ${logFile.name} 时出错`);
+    ElMessage.error(error.message);
   }
 };
 function handleAutoAnalysis() {
@@ -505,94 +438,6 @@ const stopResize = () => {
   document.removeEventListener("mouseup", stopResize);
 };
 
-// 从文件名中提取时间段
-const extractTimeRangeFromFileName = (
-  fileName: string
-): { startTime: Date | null; endTime: Date | null } => {
-  // 匹配文件名中的时间格式：YYYYMMDD-HHMMSS_YYYYMMDD-HHMMSS
-  const timePattern = /(\d{8})-(\d{6})_(\d{8})-(\d{6})/;
-  const match = fileName.match(timePattern);
-
-  if (!match) {
-    console.log("No time pattern match in fileName:", fileName);
-    return { startTime: null, endTime: null };
-  }
-
-  const [, startDate, startTime, endDate, endTime] = match;
-  console.log("Extracted time parts:", { startDate, startTime, endDate, endTime });
-
-  // 解析开始时间
-  const startYear = parseInt(startDate.substring(0, 4));
-  const startMonth = parseInt(startDate.substring(4, 6)) - 1; // 月份从0开始
-  const startDay = parseInt(startDate.substring(6, 8));
-  const startHour = parseInt(startTime.substring(0, 2));
-  const startMinute = parseInt(startTime.substring(2, 4));
-  const startSecond = parseInt(startTime.substring(4, 6));
-
-  // 解析结束时间
-  const endYear = parseInt(endDate.substring(0, 4));
-  const endMonth = parseInt(endDate.substring(4, 6)) - 1;
-  const endDay = parseInt(endDate.substring(6, 8));
-  const endHour = parseInt(endTime.substring(0, 2));
-  const endMinute = parseInt(endTime.substring(2, 4));
-  const endSecond = parseInt(endTime.substring(4, 6));
-
-  const startDateTime = new Date(
-    startYear,
-    startMonth,
-    startDay,
-    startHour,
-    startMinute,
-    startSecond
-  );
-  const endDateTime = new Date(endYear, endMonth, endDay, endHour, endMinute, endSecond);
-
-  console.log("Parsed dates:", {
-    startDateTime: startDateTime.toISOString(),
-    endDateTime: endDateTime.toISOString(),
-  });
-
-  return { startTime: startDateTime, endTime: endDateTime };
-};
-
-// 判断问题时间是否在日志时间范围内
-const isTimeInRange = (fileName: string): boolean => {
-  if (!aipInfo.dateTime) {
-    console.log("No dateTime in aipInfo");
-    return false;
-  }
-
-  const { startTime, endTime } = extractTimeRangeFromFileName(fileName);
-
-  if (!startTime || !endTime) {
-    console.log("Failed to extract time range from fileName:", fileName);
-    return false;
-  }
-
-  // 解析问题时间 - 尝试多种格式
-  let problemTime: Date;
-  try {
-    problemTime = new Date(aipInfo.dateTime);
-    // 如果解析失败，尝试其他格式
-    if (isNaN(problemTime.getTime())) {
-      // 尝试替换格式，比如将空格替换为T
-      const isoFormat = aipInfo.dateTime.replace(" ", "T");
-      problemTime = new Date(isoFormat);
-    }
-  } catch (error) {
-    console.error("Failed to parse problem time:", aipInfo.dateTime, error);
-    return false;
-  }
-
-  if (isNaN(problemTime.getTime())) {
-    console.error("Invalid problem time:", aipInfo.dateTime);
-    return false;
-  }
-
-  // 判断问题时间是否在日志时间范围内
-  const ret = problemTime >= startTime && problemTime <= endTime;
-  return ret;
-};
 const getRowClassName = ({ row }: { row: LogFileInfo }): string => {
   return row.containErrorTime ? "highlight-row" : "";
 };
@@ -603,7 +448,9 @@ const openExternalLink = async (link: string) => {
     return;
   }
   try {
-    const { success, message } = await window.electronAPI?.openLink(link);
+    const result = await window.electronAPI?.openLink(link);
+    const success = result?.success ?? false;
+    const message = result?.message ?? "";
     if (success) {
       console.log("链接打开成功:", message);
     } else {
@@ -965,6 +812,7 @@ const openExternalLink = async (link: string) => {
   text-align: left;
   flex-wrap: wrap;
 }
+
 :deep(.kv-form .el-text),
 :deep(.kv-form .el-link) {
   white-space: normal;
@@ -972,6 +820,7 @@ const openExternalLink = async (link: string) => {
   overflow-wrap: anywhere;
   text-align: left;
 }
+
 /* 针对需要明确换行的字段的类（如 cyberrt version） */
 :deep(.text-wrap) {
   white-space: normal;

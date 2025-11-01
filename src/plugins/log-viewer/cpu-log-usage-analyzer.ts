@@ -1,5 +1,5 @@
 import type { AnalysisPluginResult, LogItem } from "@/types/plugin";
-import { IAnalysisPlugin, composeTextDataResult, composeLogDataResult, composeChartDataResult } from "@/types/plugin";;
+import { IAnalysisPlugin, composeTextDataResult, composeLogDataResult, composeChartDataResult,LogClass } from "@/types/plugin";;
 
 
 interface CpuLogPoint {
@@ -19,7 +19,7 @@ interface CpuLogPoint {
 
 class CpuUsageAnalyzerPlugin extends IAnalysisPlugin {
   private constructor() {
-    super("cpu-log-usage-analyzer", "CPU使用率分析", "解析resource monitor日志，绘制cpu使用率和iowait折线图");
+    super("cpu-log-usage-analyzer", "CPU使用率分析", "解析resource monitor日志，绘制cpu使用率和iowait折线图",[LogClass.RESOURCE_MONITOR]);
   }
 
   async process(
